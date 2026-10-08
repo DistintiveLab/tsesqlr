@@ -62,6 +62,15 @@ tsesql_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
   tabela <- switch(tipo,
     candidatos = "candidatos", resultados = "resultados",
     perfil = "perfil_eleitorado", locais = "locais_votacao")
+
+  ## padroniza nomes de colunas-chave (tsebr conforma parcialmente)
+  renomear <- c(ANO_ELEICAO = "ano", SG_UE = "cod_municipio_tse",
+                NM_UE = "municipio", SG_UF = "uf",
+                NR_VOTAVEL = "nr_votavel", NM_VOTAVEL = "nm_votavel",
+                QT_VOTOS = "votos")
+  for (de in names(renomear)) {
+    if (de %in% names(dados)) names(dados)[names(dados) == de] <- renomear[[de]]
+  }
   existe <- DBI::dbGetQuery(con, paste(
     "SELECT 1 FROM information_schema.tables WHERE table_name = $1"),
     params = list(tabela))
