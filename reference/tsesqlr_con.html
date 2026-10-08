@@ -4,7 +4,7 @@ credenciais vêm das variáveis de ambiente (.Renviron):
 user, password, host, dbname."><meta property="og:description" content="Abre conexão ao PostgreSQL dedicado aos dados eleitorais. As
 credenciais vêm das variáveis de ambiente (.Renviron):
 user, password, host, dbname."></head><body>
-    <a href="#main" class="visually-hidden-focusable">Avance para o conteúdo</a>
+    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
@@ -14,14 +14,14 @@ user, password, host, dbname."></head><body>
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9004</small>
 
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Alternar de navegação">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Referência</a></li>
+      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
- <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Procurar" data-search-index="../search.json"></form></li>
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/DistintiveLab/tsesqlr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
@@ -32,7 +32,7 @@ user, password, host, dbname."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Conexão ao banco tsedb</h1>
-      <small class="dont-index">Fonte: <a href="https://github.com/DistintiveLab/tsesqlr/blob/HEAD/R/tsesqlr.R" class="external-link"><code>R/tsesqlr.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/DistintiveLab/tsesqlr/blob/main/R/tsesqlr.R" class="external-link"><code>R/tsesqlr.R</code></a></small>
       <div class="d-none name"><code>tsesqlr_con.Rd</code></div>
     </div>
 
@@ -48,7 +48,7 @@ credenciais vêm das variáveis de ambiente (<code>.Renviron</code>):
     </div>
 
     <div class="section level2">
-    <h2 id="argumentos">Argumentos<a class="anchor" aria-label="anchor" href="#argumentos"></a></h2>
+    <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
 <dl><dt id="arg-dbname">dbname<a class="anchor" aria-label="anchor" href="#arg-dbname"></a></dt>
@@ -56,20 +56,20 @@ credenciais vêm das variáveis de ambiente (<code>.Renviron</code>):
 
 </dl></div>
     <div class="section level2">
-    <h2 id="valor">Valor<a class="anchor" aria-label="anchor" href="#valor"></a></h2>
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Objeto de conexão DBI (RPostgres).</p>
     </div>
     <div class="section level2">
-    <h2 id="veja-tamb-m">Veja também<a class="anchor" aria-label="anchor" href="#veja-tamb-m"></a></h2>
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other tsesqlr:
-<code><a href="tsesqlr_candidatos.html">tsesqlr_candidatos</a>()</code>,
-<code><a href="tsesqlr_carregar.html">tsesqlr_carregar</a>()</code>,
-<code><a href="tsesqlr_init.html">tsesqlr_init</a>()</code>,
-<code><a href="tsesqlr_resultados.html">tsesqlr_resultados</a>()</code></p></div>
+<code><a href="tsesqlr_candidatos.html">tsesqlr_candidatos()</a></code>,
+<code><a href="tsesqlr_carregar.html">tsesqlr_carregar()</a></code>,
+<code><a href="tsesqlr_init.html">tsesqlr_init()</a></code>,
+<code><a href="tsesqlr_resultados.html">tsesqlr_resultados()</a></code></p></div>
     </div>
 
     <div class="section level2">
-    <h2 id="ref-examples">Exemplos<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu">tsesqlr_con</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbListTables.html" class="external-link">dbListTables</a></span><span class="op">(</span><span class="va">con</span><span class="op">)</span></span></span>
@@ -77,16 +77,16 @@ credenciais vêm das variáveis de ambiente (<code>.Renviron</code>):
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
-  </main><aside class="col-md-3"><nav id="toc" aria-label="Índice"><h2>Nesta página</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Desenvolvido por DistintiveLab.</p>
+  <p>Developed by DistintiveLab.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site criado com <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>
