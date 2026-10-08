@@ -43,6 +43,8 @@ Useful links:
 
 - <https://github.com/DistintiveLab/tsesqlr>
 
+- <https://distintivelab.github.io/tsesqlr>
+
 - Report bugs at <https://github.com/DistintiveLab/tsesqlr/issues>
 
 ## Author

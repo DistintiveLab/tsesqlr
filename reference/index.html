@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">tsesqlr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9006</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9007</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -95,7 +95,7 @@
       </dl></div><div class="section level2">
       <h2 id="detalhes-internos">Detalhes internos<a class="anchor" aria-label="anchor" href="#detalhes-internos"></a></h2>
 
-      <div class="section-desc"><p>Helpers e esquema canônico usados pela carga.</p></div>
+      <div class="section-desc"><p>Helpers e esquema canônico usados pela carga, documentados com <code>@keywords internal</code>. O <code>internal = TRUE</code> é necessário porque os seletores do pkgdown ignoram tópicos internos por padrão.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -104,38 +104,52 @@
 
       <dl><dt>
 
-          <code><a href="tsesqlr_candidatos.html">tsesqlr_candidatos()</a></code>
+          <code><a href="dot-agregar_boletins.html">.agregar_boletins()</a></code>
 
         </dt>
-        <dd>Consulta rápida: candidaturas</dd>
+        <dd>Agrega o boletim de urna WEB por municipio/cargo/votavel</dd>
 
         <dt>
 
-          <code><a href="tsesqlr_carregar.html">tsesqlr_carregar()</a></code>
+          <code><a href="dot-carregar_um.html">.carregar_um()</a></code>
 
         </dt>
-        <dd>Carrega dados eleitorais no tsedb</dd>
+        <dd>Carga de um escopo (tipo, ano, uf) — nucleo do <code><a href="../reference/tsesqlr_carregar.html">tsesqlr_carregar()</a></code></dd>
 
         <dt>
 
-          <code><a href="tsesqlr_con.html">tsesqlr_con()</a></code>
+          <code><a href="dot-layout_compativel.html">.layout_compativel()</a></code>
 
         </dt>
-        <dd>Conexão ao banco tsedb</dd>
+        <dd>Verifica se a tabela do banco casa com nomes e tipos dos dados</dd>
 
         <dt>
 
-          <code><a href="tsesqlr_init.html">tsesqlr_init()</a></code>
+          <code><a href="dot-padrao_colunas.html">.padrao_colunas</a></code>
 
         </dt>
-        <dd>Inicializa o schema do tsedb</dd>
+        <dd>Colunas canonicas por tabela (esquema estavel entre anos/ciclos)</dd>
 
         <dt>
 
-          <code><a href="tsesqlr_resultados.html">tsesqlr_resultados()</a></code>
+          <code><a href="dot-padronizar.html">.padronizar()</a></code>
 
         </dt>
-        <dd>Consulta rápida: resultados por município</dd>
+        <dd>Completa/ordena colunas do data.frame no esquema canonico</dd>
+
+        <dt>
+
+          <code><a href="dot-tipos_colunas.html">.tipos_colunas</a></code>
+
+        </dt>
+        <dd>Tipos canonicos das colunas (evita NA logico virar BOOLEAN no banco)</dd>
+
+        <dt>
+
+          <code><a href="dot-ufs_br.html">.ufs_br</a></code>
+
+        </dt>
+        <dd>Siglas das 27 UFs (sem ZZ)</dd>
       </dl></div><div class="section level2">
       <h2 id="pacote">Pacote<a class="anchor" aria-label="anchor" href="#pacote"></a></h2>
 

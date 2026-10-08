@@ -82,18 +82,33 @@ Consultas rápidas no banco pré-carregado, sem download.
 
 ## Detalhes internos
 
-Helpers e esquema canônico usados pela carga.
+Helpers e esquema canônico usados pela carga, documentados com
+`@keywords internal`. O `internal = TRUE` é necessário porque os
+seletores do pkgdown ignoram tópicos internos por padrão.
 
-- [`tsesqlr_candidatos()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_candidatos.md)
-  : Consulta rápida: candidaturas
-- [`tsesqlr_carregar()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_carregar.md)
-  : Carrega dados eleitorais no tsedb
-- [`tsesqlr_con()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_con.md)
-  : Conexão ao banco tsedb
-- [`tsesqlr_init()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_init.md)
-  : Inicializa o schema do tsedb
-- [`tsesqlr_resultados()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_resultados.md)
-  : Consulta rápida: resultados por município
+- [`.agregar_boletins()`](https://distintivelab.github.io/tsesqlr/reference/dot-agregar_boletins.md)
+  : Agrega o boletim de urna WEB por municipio/cargo/votavel
+
+- [`.carregar_um()`](https://distintivelab.github.io/tsesqlr/reference/dot-carregar_um.md)
+  :
+
+  Carga de um escopo (tipo, ano, uf) — nucleo do
+  [`tsesqlr_carregar()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_carregar.md)
+
+- [`.layout_compativel()`](https://distintivelab.github.io/tsesqlr/reference/dot-layout_compativel.md)
+  : Verifica se a tabela do banco casa com nomes e tipos dos dados
+
+- [`.padrao_colunas`](https://distintivelab.github.io/tsesqlr/reference/dot-padrao_colunas.md)
+  : Colunas canonicas por tabela (esquema estavel entre anos/ciclos)
+
+- [`.padronizar()`](https://distintivelab.github.io/tsesqlr/reference/dot-padronizar.md)
+  : Completa/ordena colunas do data.frame no esquema canonico
+
+- [`.tipos_colunas`](https://distintivelab.github.io/tsesqlr/reference/dot-tipos_colunas.md)
+  : Tipos canonicos das colunas (evita NA logico virar BOOLEAN no banco)
+
+- [`.ufs_br`](https://distintivelab.github.io/tsesqlr/reference/dot-ufs_br.md)
+  : Siglas das 27 UFs (sem ZZ)
 
 ## Pacote
 
