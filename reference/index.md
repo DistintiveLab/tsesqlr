@@ -42,6 +42,16 @@ seletores do pkgdown ignoram tópicos internos por padrão.
   [`tsesqlr_carregar()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_carregar.md)
 
 - [`.layout_compativel()`](https://distintivelab.github.io/tsesqlr/reference/dot-layout_compativel.md)
+  :
+
+  Compara as colunas e os tipos de `dados` com o que existe em
+  `information_schema`. Detecta tabelas criadas com layout antigo em que
+  os nomes batem mas um tipo mudou (ex.: `turno BOOLEAN` vindo de um
+  `NA` logico) — algo que
+  [`DBI::dbWriteTable()`](https://dbi.r-dbi.org/reference/dbWriteTable.html)
+  nao acusaria antes do COPY falhar.
+
+- [`.normalizar_tipo_pg()`](https://distintivelab.github.io/tsesqlr/reference/dot-normalizar_tipo_pg.md)
   : Verifica se a tabela do banco casa com nomes e tipos dos dados
 
 - [`.padrao_colunas`](https://distintivelab.github.io/tsesqlr/reference/dot-padrao_colunas.md)

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">tsesqlr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9007</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9008</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -119,6 +119,13 @@
         <dt>
 
           <code><a href="dot-layout_compativel.html">.layout_compativel()</a></code>
+
+        </dt>
+        <dd>Compara as colunas e os tipos de <code>dados</code> com o que existe em <code>information_schema</code>. Detecta tabelas criadas com layout antigo em que os nomes batem mas um tipo mudou (ex.: <code>turno BOOLEAN</code> vindo de um <code>NA</code> logico) — algo que <code><a href="https://dbi.r-dbi.org/reference/dbWriteTable.html" class="external-link">DBI::dbWriteTable()</a></code> nao acusaria antes do COPY falhar.</dd>
+
+        <dt>
+
+          <code><a href="dot-normalizar_tipo_pg.html">.normalizar_tipo_pg()</a></code>
 
         </dt>
         <dd>Verifica se a tabela do banco casa com nomes e tipos dos dados</dd>
