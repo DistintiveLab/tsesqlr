@@ -1,4 +1,4 @@
-# tsesql
+# tsesqlr
 
 **Banco de dados eleitorais TSE pré-carregado (PostgreSQL)** — camada de
 persistência do [tsebr](https://github.com/DistintiveLab/tsebr): baixa
@@ -7,18 +7,18 @@ rápidas por SQL/DBI. O painel [beep](https://github.com/DistintiveLab/beep)
 consulta este banco em vez de re-baixar da internet a cada uso.
 
 ```r
-remotes::install_github("DistintiveLab/tsesql")
+remotes::install_github("DistintiveLab/tsesqlr")
 
 # inicializa o schema (idempotente)
-tsesql::tsesql_init()
+tsesqlr::tsesqlr_init()
 
 # carrega dados (baixa via tsebr, grava no banco)
-tsesql::tsesql_carregar("candidatos", 2022, uf = "DF")
-tsesql::tsesql_carregar("resultados", 2022, uf = "DF")
+tsesqlr::tsesqlr_carregar("candidatos", 2022, uf = "DF")
+tsesqlr::tsesqlr_carregar("resultados", 2022, uf = "DF")
 
 # consulta rápida (sem download)
-tsesql::tsesql_resultados(2022, uf = "DF", cargo = "GOVERNADOR")
-tsesql::tsesql_candidatos(2022, uf = "DF", cargo = "PRESIDENTE")
+tsesqlr::tsesqlr_resultados(2022, uf = "DF", cargo = "GOVERNADOR")
+tsesqlr::tsesqlr_candidatos(2022, uf = "DF", cargo = "PRESIDENTE")
 ```
 
 ## Tabelas

@@ -1,4 +1,4 @@
-#' tsesql: banco de dados eleitorais TSE pré-carregado
+#' tsesqlr: banco de dados eleitorais TSE pré-carregado
 #'
 #' @keywords internal
 #' @docType package
@@ -8,7 +8,7 @@
 #'
 #' @param dbname Nome do banco; default "tsedb".
 #' @export
-tsesql_con <- \(dbname = "tsedb") {
+tsesqlr_con <- \(dbname = "tsedb") {
   DBI::dbConnect(
     RPostgres::Postgres(),
     user = Sys.getenv("user", "beep"),
@@ -19,11 +19,11 @@ tsesql_con <- \(dbname = "tsedb") {
 
 #' Inicializa o schema do tsedb
 #'
-#' @param con Conexao; default abre via [tsesql_con()].
+#' @param con Conexao; default abre via [tsesqlr_con()].
 #' @export
-tsesql_init <- \(con = NULL) {
+tsesqlr_init <- \(con = NULL) {
   .nossa <- is.null(con)
-  if (.nossa) con <- tsesql_con()
+  if (.nossa) con <- tsesqlr_con()
   on.exit(if (.nossa) DBI::dbDisconnect(con), add = TRUE)
   DBI::dbExecute(con, paste(
     "CREATE TABLE IF NOT EXISTS cargas (",
@@ -41,11 +41,11 @@ tsesql_init <- \(con = NULL) {
 #' @param con Conexao; default abre.
 #' @param refrescar Forcar re-download mesmo se ja carregado.
 #' @export
-tsesql_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
+tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
                       ano, uf = "all", con = NULL, refrescar = FALSE) {
   tipo <- match.arg(tipo)
   .nossa <- is.null(con)
-  if (.nossa) con <- tsesql_con()
+  if (.nossa) con <- tsesqlr_con()
   on.exit(if (.nossa) DBI::dbDisconnect(con), add = TRUE)
   ja <- DBI::dbGetQuery(con, paste(
     "SELECT n_linhas FROM cargas WHERE tabela = $1 AND ano = $2 AND uf = $3"),
@@ -94,9 +94,9 @@ tsesql_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
 #' Consulta: resultados por município
 #' @param ano Ano, uf UF, cargo regex, nr_votavel numero, con conexao
 #' @export
-tsesql_resultados <- \(ano, uf, cargo = NULL, nr_votavel = NULL, con = NULL) {
+tsesqlr_resultados <- \(ano, uf, cargo = NULL, nr_votavel = NULL, con = NULL) {
   .nossa <- is.null(con)
-  if (.nossa) con <- tsesql_con()
+  if (.nossa) con <- tsesqlr_con()
   on.exit(if (.nossa) DBI::dbDisconnect(con), add = TRUE)
   sql <- "SELECT * FROM resultados WHERE ano = $1 AND uf = $2"
   params <- list(as.integer(ano), toupper(uf))
@@ -108,9 +108,9 @@ tsesql_resultados <- \(ano, uf, cargo = NULL, nr_votavel = NULL, con = NULL) {
 #' Consulta: candidaturas
 #' @param ano Ano, uf UF, cargo regex, con conexao
 #' @export
-tsesql_candidatos <- \(ano, uf, cargo = NULL, con = NULL) {
+tsesqlr_candidatos <- \(ano, uf, cargo = NULL, con = NULL) {
   .nossa <- is.null(con)
-  if (.nossa) con <- tsesql_con()
+  if (.nossa) con <- tsesqlr_con()
   on.exit(if (.nossa) DBI::dbDisconnect(con), add = TRUE)
   sql <- "SELECT * FROM candidatos WHERE ano = $1 AND uf = $2"
   params <- list(as.integer(ano), toupper(uf))
