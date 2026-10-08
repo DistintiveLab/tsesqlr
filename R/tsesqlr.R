@@ -81,24 +81,72 @@ tsesqlr_init <- \(con = NULL) {
   DBI::dbExecute(con, paste(
     "CREATE TABLE IF NOT EXISTS cargas (",
     "tabela TEXT NOT NULL, ano INTEGER NOT NULL, uf TEXT NOT NULL,",
-    "carregado_en TIMESTAMP DEFAULT NOW(), n_linhas BIGINT,",
+    "carregado_em TIMESTAMP DEFAULT NOW(), n_linhas BIGINT,",
     "PRIMARY KEY (tabela, ano, uf))"))
   invisible(TRUE)
+}
+
+#' Siglas das 27 UFs (sem ZZ)
+#' @keywords internal
+.ufs_br <- c("AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO",
+             "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR",
+             "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO")
+
+#' Colunas canonicas por tabela (esquema estavel entre anos/ciclos)
+#' @keywords internal
+.padrao_colunas <- list(
+  resultados = c("ano", "periodo", "uf", "cod_municipio_tse", "municipio",
+                 "turno", "cargo", "nr_votavel", "nm_votavel", "votos"),
+  candidatos = c("ano", "uf", "cod_municipio_tse", "municipio", "sq_candidato",
+                 "nome", "nome_urna", "nr_candidato", "partido", "cargo",
+                 "situacao"),
+  perfil_eleitorado = c("ano", "uf", "cod_municipio_tse", "zona", "secao",
+                        "faixa_etaria", "escolaridade", "genero", "eleitores",
+                        "eleitores_biometria"),
+  locais_votacao = c("ano", "uf", "cod_municipio_tse", "municipio", "zona",
+                     "secao", "local_votacao", "endereco", "bairro", "lat",
+                     "lon", "eleitores_secao"))
+
+#' Completa/ordena colunas do data.frame no esquema canonico
+#' @keywords internal
+.padronizar <- \(dados, colunas, ano) {
+  dados <- as.data.frame(dados)
+  if (!"ano" %in% names(dados)) dados$ano <- as.integer(ano)
+  for (col in setdiff(colunas, names(dados))) dados[[col]] <- NA
+  dados[, colunas, drop = FALSE]
+}
+
+#' Agrega o boletim de urna WEB por municipio/cargo/votavel
+#' @keywords internal
+.agregar_boletins <- \(ano, uf) {
+  dados <- tsebr::tse_boletins(ano, uf)
+  chaves <- intersect(c("uf", "cod_municipio_tse", "municipio", "turno",
+                        "cargo", "nr_votavel", "nm_votavel", "periodo"),
+                      names(dados))
+  dados |>
+    dplyr::select(dplyr::all_of(c(chaves, "votos"))) |>
+    dplyr::mutate(votos = as.numeric(votos),
+                  cargo = if ("cargo" %in% chaves) toupper(cargo)) |>
+    dplyr::group_by(dplyr::across(dplyr::all_of(chaves))) |>
+    dplyr::summarise(votos = sum(votos, na.rm = TRUE), .groups = "drop") |>
+    dplyr::mutate(ano = as.integer(ano))
 }
 
 #' Carrega dados eleitorais no tsedb
 #'
 #' Baixa dados via tsebr e grava no banco PostgreSQL. A tabela é criada
-#' dinamicamente com as colunas do data.frame na primeira carga; cargas
-#' subsequentes fazem DELETE do escopo (ano+UF) e INSERT limpo.
+#' com as colunas canonicas do tipo (esquema estável entre anos/ciclos);
+#' cargas subsequentes fazem DELETE do escopo (ano+UF) e INSERT limpo.
 #'
 #' Idempotente: se o escopo (tipo, ano, uf) já foi carregado (registro
 #' em `cargas`), pula a menos que `refrescar = TRUE`.
 #'
-#' Para 2026 em diante, resultados usam o boletim de urna WEB (bweb)
-#' do CKAN — o dataset `resultados-2026` ainda não publicou os CSVs
-#' tradicionais de votacao_secao. Para anos anteriores, usa os zips
-#' padrão do CDN.
+#' Para `resultados`: anos anteriores a 2026 agregam a votação por
+#' seção a **município x turno x cargo x votável**, uma UF por vez
+#' (o conjunto nacional por seção não cabe em memória — era a causa
+#' de sessões do R mortas em `uf = "all"`); 2026+ usa o boletim de
+#' urna WEB (bweb) do CKAN com a mesma granularidade. A tabela
+#' `resultados` tem votos por município/candidato/cargo/turno.
 #'
 #' @param tipo Tipo de dado: `"candidatos"`, `"resultados"`,
 #'   `"perfil"` ou `"locais"`.
@@ -106,8 +154,9 @@ tsesqlr_init <- \(con = NULL) {
 #' @param uf Sigla da UF ou `"all"` para todas as 27 UFs.
 #'   Para `"all"` em resultados, o download é pesado (vários GB).
 #' @param con Conexao DBI; default abre via [tsesqlr_con()].
-#' @param refrescar Forcar re-download mesmo se ja carregado.
-#'   Default FALSE.
+#' @param refrescar Forcar re-download mesmo se ja carregado. Se a
+#'   tabela existir com layout antigo (ex.: resultados por seção),
+#'   recria a tabela — recarregue as demais cargas dela depois.
 #' @return Número de linhas carregadas, invisível.
 #' @examples
 #' \dontrun{
@@ -122,23 +171,53 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
   .nossa <- is.null(con)
   if (.nossa) con <- tsesqlr_con()
   on.exit(if (.nossa) DBI::dbDisconnect(con), add = TRUE)
+  uf <- toupper(uf)
+  invalida <- setdiff(uf, c(.ufs_br, "ALL"))
+  if (length(invalida)) {
+    stop("tsesqlr: UF invalida: ", paste(invalida, collapse = ", "))
+  }
+  ## perfil e resultados-2026+ tem arquivo por UF: carregar UF a UF
+  ## mantem a memoria bornada e da idempotencia incremental
+  ## (carregar DF hoje, SP depois). resultados pre-2026 com ALL vai
+  ## em carga unica: tse_votacao_municipio(uf="all") ja processa
+  ## UF a UF internamente e le o zip BR (presidente) uma so vez.
+  ## candidatos/locais sao nacionais: carga unica
+  por_uf <- (tipo == "perfil" && identical(uf, "ALL")) ||
+    (tipo == "resultados" && identical(uf, "ALL") && as.integer(ano) >= 2026)
+  escopos <- if (por_uf) .ufs_br else uf
+  total <- 0L
+  for (esc in escopos) {
+    total <- total + .carregar_um(tipo, as.integer(ano), esc, con, refrescar)
+  }
+  message(tipo, " ", ano, " ", uf, ": ", total, " linhas carregadas")
+  invisible(total)
+}
+
+#' Carga de um escopo (tipo, ano, uf) — nucleo do [tsesqlr_carregar()]
+#' @keywords internal
+.carregar_um <- \(tipo, ano, uf, con, refrescar) {
+  tabela <- switch(tipo,
+                   candidatos = "candidatos", resultados = "resultados",
+                   perfil = "perfil_eleitorado", locais = "locais_votacao")
   ja <- DBI::dbGetQuery(con, paste(
     "SELECT n_linhas FROM cargas WHERE tabela = $1 AND ano = $2 AND uf = $3"),
-    params = list(tipo, as.integer(ano), toupper(uf)))
+    params = list(tipo, ano, uf))
   if (nrow(ja) && !refrescar) {
-    message(tipo, " ", ano, " ", uf, ": ja carregado (", ja$n_linhas, " linhas")
-    return(invisible(ja$n_linhas))
+    message(tipo, " ", ano, " ", uf, ": ja carregado (",
+            ja$n_linhas, " linhas)")
+    return(invisible(0L))
   }
+  ## tsebr espera "all" minusculo; locais e nacional: sem recorte
+  ## quando ALL (o filtro por uf apos a leitura esvaziaria a carga)
+  uf_dados <- if (identical(uf, "ALL")) {
+    if (tipo == "locais") NULL else "all"
+  } else uf
   dados <- switch(tipo,
-    candidatos = tsebr::tse_candidaturas(ano, uf = uf),
-    resultados = if (ano >= 2026) tsebr::tse_boletins(ano, uf = uf) else
-      tsebr::tse_resultados_municipio(ano, uf = uf),
-    perfil = tsebr::tse_perfis_secao(ano, uf = uf),
-    locais = tsebr::tse_locais_votacao(ano, uf = uf))
-  tabela <- switch(tipo,
-    candidatos = "candidatos", resultados = "resultados",
-    perfil = "perfil_eleitorado", locais = "locais_votacao")
-
+    candidatos = tsebr::tse_candidaturas(ano, uf = uf_dados),
+    resultados = if (ano >= 2026) .agregar_boletins(ano, uf_dados) else
+      tsebr::tse_votacao_municipio(ano, uf = uf_dados),
+    perfil = tsebr::tse_perfis_secao(ano, uf = uf_dados),
+    locais = tsebr::tse_locais_votacao(ano, uf = uf_dados))
   ## padroniza nomes de colunas-chave (tsebr conforma parcialmente)
   renomear <- c(ANO_ELEICAO = "ano", SG_UE = "cod_municipio_tse",
                 NM_UE = "municipio", SG_UF = "uf",
@@ -147,24 +226,55 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
   for (de in names(renomear)) {
     if (de %in% names(dados)) names(dados)[names(dados) == de] <- renomear[[de]]
   }
+  dados <- .padronizar(dados, .padrao_colunas[[tabela]], ano)
   existe <- DBI::dbGetQuery(con, paste(
     "SELECT 1 FROM information_schema.tables WHERE table_name = $1"),
     params = list(tabela))
   if (nrow(existe)) {
-    DBI::dbExecute(con, paste(
-      "DELETE FROM", tabela, "WHERE ano = $1 AND uf = $2"),
-      params = list(as.integer(ano), toupper(uf)))
+    atuais <- DBI::dbListFields(con, tabela)
+    if (!setequal(atuais, names(dados))) {
+      if (!refrescar) {
+        stop("tsesqlr: tabela '", tabela, "' foi carregada com outro ",
+             "layout (", paste(atuais, collapse = ", "),
+             "); use refrescar = TRUE para recria-la com o esquema ",
+             "atual (as outras cargas desta tabela precisam ser ",
+             "recarregadas em seguida)")
+      }
+      warning("tsesqlr: recriando a tabela '", tabela,
+              "' (layout antigo); cargas anteriores dela foram perdidas")
+      DBI::dbExecute(con, paste("DROP TABLE", tabela))
+      DBI::dbExecute(con, "DELETE FROM cargas WHERE tabela = $1",
+                     params = list(tipo))
+      existe <- data.frame()
+    }
+  }
+  if (nrow(existe)) {
+    ## escopo ALL remove so o ano (as linhas carregam a UF real)
+    if (identical(uf, "ALL")) {
+      DBI::dbExecute(con, paste("DELETE FROM", tabela, "WHERE ano = $1"),
+                     params = list(ano))
+    } else {
+      DBI::dbExecute(con, paste(
+        "DELETE FROM", tabela, "WHERE ano = $1 AND uf = $2"),
+        params = list(ano, uf))
+    }
     DBI::dbWriteTable(con, tabela, as.data.frame(dados), append = TRUE)
   } else {
     DBI::dbWriteTable(con, tabela, as.data.frame(dados), append = FALSE)
   }
+  ## carga ALL cobre as UFs individuais: registros per-UF do mesmo
+  ## ano ficam obsoletos
+  if (identical(uf, "ALL")) {
+    DBI::dbExecute(con, "DELETE FROM cargas WHERE tabela = $1 AND ano = $2",
+                   params = list(tipo, ano))
+  }
   DBI::dbExecute(con, paste(
     "INSERT INTO cargas (tabela, ano, uf, n_linhas) VALUES ($1,$2,$3,$4)",
     "ON CONFLICT (tabela, ano, uf) DO UPDATE SET",
-    "n_linhas = $4, carregado_en = NOW()"),
-    params = list(tipo, as.integer(ano), toupper(uf), nrow(dados)))
+    "n_linhas = $4, carregado_em = NOW()"),
+    params = list(tipo, ano, uf, nrow(dados)))
   message(tipo, " ", ano, " ", uf, ": ", nrow(dados), " linhas carregadas")
-  invisible(nrow(dados))
+  nrow(dados)
 }
 
 #' Consulta rápida: resultados por município
