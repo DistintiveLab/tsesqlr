@@ -30,3 +30,21 @@ test_that("todas as tabelas tem esquema canonico definido", {
     expect_false(any(duplicated(cols)))
   }
 })
+
+test_that("coluna ausente recebe NA do tipo canonico, nao logico", {
+  # NA logico faz o Postgres criar a coluna como BOOLEAN (turno em 2026),
+  # quebrando cargas seguintes com turno 1/2.
+  d <- data.frame(uf = "DF", votos = 10L)
+  pad <- tsesqlr:::.padronizar(d, tsesqlr:::.padrao_colunas$resultados, 2022)
+  expect_type(pad$turno, "integer")
+  expect_true(inherits(pad$periodo, "Date"))
+  expect_type(pad$cargo, "character")
+  expect_false(is.logical(pad$turno))
+})
+
+test_that("tipos canonicos cobrem todas as colunas do esquema", {
+  todas <- unique(unlist(tsesqlr:::.padrao_colunas))
+  expect_setequal(names(tsesqlr:::.tipos_colunas), todas)
+  expect_true(all(tsesqlr:::.tipos_colunas %in%
+                    c("integer", "numeric", "character", "Date")))
+})

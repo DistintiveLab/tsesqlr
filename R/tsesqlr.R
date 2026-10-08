@@ -107,12 +107,38 @@ tsesqlr_init <- \(con = NULL) {
                      "secao", "local_votacao", "endereco", "bairro", "lat",
                      "lon", "eleitores_secao"))
 
+#' Tipos canonicos das colunas (evita NA logico virar BOOLEAN no banco)
+#' @keywords internal
+.tipos_colunas <- c(
+  ano = "integer", periodo = "Date", uf = "character",
+  cod_municipio_tse = "integer", municipio = "character",
+  turno = "integer", cargo = "character", nr_votavel = "integer",
+  nm_votavel = "character", votos = "numeric",
+  sq_candidato = "integer", nome = "character", nome_urna = "character",
+  nr_candidato = "integer", partido = "character", situacao = "character",
+  zona = "integer", secao = "integer", faixa_etaria = "character",
+  escolaridade = "character", genero = "character", eleitores = "integer",
+  eleitores_biometria = "integer", local_votacao = "character",
+  endereco = "character", bairro = "character", lat = "numeric",
+  lon = "numeric", eleitores_secao = "integer")
+
 #' Completa/ordena colunas do data.frame no esquema canonico
+#'
+#' As colunas ausentes sao preenchidas com `NA` do tipo canonico
+#' (`.tipos_colunas`) — um `NA` logico faria o PostgreSQL criar a
+#' coluna como `BOOLEAN` na primeira carga (ex.: `turno` em 2026),
+#' quebrando cargas seguintes com valores de outro tipo.
 #' @keywords internal
 .padronizar <- \(dados, colunas, ano) {
   dados <- as.data.frame(dados)
   if (!"ano" %in% names(dados)) dados$ano <- as.integer(ano)
-  for (col in setdiff(colunas, names(dados))) dados[[col]] <- NA
+  for (col in setdiff(colunas, names(dados))) {
+    tipo <- .tipos_colunas[[col]]
+    dados[[col]] <- switch(
+      if (is.null(tipo)) "character" else tipo,
+      integer = NA_integer_, numeric = NA_real_,
+      Date = as.Date(NA), NA_character_)
+  }
   dados[, colunas, drop = FALSE]
 }
 
@@ -193,6 +219,23 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
   invisible(total)
 }
 
+#' Verifica se a tabela do banco casa com nomes e tipos dos dados
+#'
+#' Compara as colunas e os tipos de `dados` com o que existe em
+#' `information_schema`. Detecta tabelas criadas com layout antigo
+#' em que os nomes batem mas um tipo mudou (ex.: `turno BOOLEAN`
+#' vindo de um `NA` logico) — algo que [DBI::dbWriteTable()] nao
+#' acusaria antes do COPY falhar.
+#' @keywords internal
+.layout_compativel <- \(con, tabela, dados) {
+  atuais <- DBI::dbGetQuery(con, paste(
+    "SELECT column_name, data_type FROM information_schema.columns",
+    "WHERE table_name = $1"), params = list(tabela))
+  if (!setequal(atuais$column_name, names(dados))) return(FALSE)
+  esperado <- vapply(dados, function(x) DBI::dbDataType(con, x), character(1))
+  isTRUE(all(atuais$data_type == toupper(esperado[atuais$column_name])))
+}
+
 #' Carga de um escopo (tipo, ano, uf) — nucleo do [tsesqlr_carregar()]
 #' @keywords internal
 .carregar_um <- \(tipo, ano, uf, con, refrescar) {
@@ -230,23 +273,22 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
   existe <- DBI::dbGetQuery(con, paste(
     "SELECT 1 FROM information_schema.tables WHERE table_name = $1"),
     params = list(tabela))
-  if (nrow(existe)) {
-    atuais <- DBI::dbListFields(con, tabela)
-    if (!setequal(atuais, names(dados))) {
-      if (!refrescar) {
-        stop("tsesqlr: tabela '", tabela, "' foi carregada com outro ",
-             "layout (", paste(atuais, collapse = ", "),
-             "); use refrescar = TRUE para recria-la com o esquema ",
-             "atual (as outras cargas desta tabela precisam ser ",
-             "recarregadas em seguida)")
-      }
-      warning("tsesqlr: recriando a tabela '", tabela,
-              "' (layout antigo); cargas anteriores dela foram perdidas")
-      DBI::dbExecute(con, paste("DROP TABLE", tabela))
-      DBI::dbExecute(con, "DELETE FROM cargas WHERE tabela = $1",
-                     params = list(tipo))
-      existe <- data.frame()
+  if (nrow(existe) && !.layout_compativel(con, tabela, dados)) {
+    if (!refrescar) {
+      stop("tsesqlr: tabela '", tabela, "' foi carregada com outro ",
+           "layout ou tipo de coluna (",
+           paste(DBI::dbListFields(con, tabela), collapse = ", "),
+           " vs ", paste(names(dados), collapse = ", "),
+           "); use refrescar = TRUE para recria-la com o esquema ",
+           "atual (as outras cargas desta tabela precisam ser ",
+           "recarregadas em seguida)")
     }
+    warning("tsesqlr: recriando a tabela '", tabela,
+            "' (layout/tipo antigo); cargas anteriores dela foram perdidas")
+    DBI::dbExecute(con, paste("DROP TABLE", tabela))
+    DBI::dbExecute(con, "DELETE FROM cargas WHERE tabela = $1",
+                   params = list(tipo))
+    existe <- data.frame()
   }
   if (nrow(existe)) {
     ## escopo ALL remove so o ano (as linhas carregam a UF real)

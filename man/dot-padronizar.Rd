@@ -7,6 +7,9 @@
 .padronizar(dados, colunas, ano)
 }
 \description{
-Completa/ordena colunas do data.frame no esquema canonico
+As colunas ausentes sao preenchidas com \code{NA} do tipo canonico
+(\code{.tipos_colunas}) — um \code{NA} logico faria o PostgreSQL criar a
+coluna como \code{BOOLEAN} na primeira carga (ex.: \code{turno} em 2026),
+quebrando cargas seguintes com valores de outro tipo.
 }
 \keyword{internal}
