@@ -24,3 +24,11 @@ DBI::dbListTables(con)
 DBI::dbDisconnect(con)
 }
 }
+\seealso{
+Other tsesqlr: 
+\code{\link{tsesqlr_candidatos}()},
+\code{\link{tsesqlr_carregar}()},
+\code{\link{tsesqlr_init}()},
+\code{\link{tsesqlr_resultados}()}
+}
+\concept{tsesqlr}

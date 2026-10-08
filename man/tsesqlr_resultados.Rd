@@ -31,3 +31,13 @@ tsesqlr_resultados(2026, "DF", cargo = "GOVERNADOR")
 tsesqlr_resultados(2022, "SP", nr_votavel = 13)
 }
 }
+\seealso{
+\code{\link[=tsesqlr_candidatos]{tsesqlr_candidatos()}}
+
+Other tsesqlr: 
+\code{\link{tsesqlr_candidatos}()},
+\code{\link{tsesqlr_carregar}()},
+\code{\link{tsesqlr_con}()},
+\code{\link{tsesqlr_init}()}
+}
+\concept{tsesqlr}

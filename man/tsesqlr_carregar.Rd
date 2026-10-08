@@ -53,3 +53,11 @@ tsesqlr_carregar("candidatos", 2022, uf = "DF")
 tsesqlr_carregar("resultados", 2026, uf = "DF")
 }
 }
+\seealso{
+Other tsesqlr: 
+\code{\link{tsesqlr_candidatos}()},
+\code{\link{tsesqlr_con}()},
+\code{\link{tsesqlr_init}()},
+\code{\link{tsesqlr_resultados}()}
+}
+\concept{tsesqlr}

@@ -1,0 +1,53 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
+# Publica o site pkgdown na branch gh-pages a cada push em main.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+name: pkgdown
+
+jobs:
+  pkgdown:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::pkgdown, github::DistintiveLab/tsebr, local::.
+          needs: website
+
+      # O pkgdown renderiza TODO *.md da raiz (e de .github/) como pagina do
+      # site, ignorando o .Rbuildignore. AGENTS.md e documentacao interna de
+      # agentes, nao deve ir para o site publico.
+      - name: Remover documentacao interna do site
+        run: rm -f AGENTS.md
+
+      - name: Build site
+        run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
+        shell: Rscript {0}
+
+      - name: Deploy to GitHub pages
+        if: github.event_name != 'pull_request'
+        uses: JamesIves/github-pages-deploy-action@v4.6.1
+        with:
+          clean: false
+          branch: gh-pages
+          folder: docs

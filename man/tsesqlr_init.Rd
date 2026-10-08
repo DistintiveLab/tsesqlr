@@ -23,3 +23,11 @@ chamado quantas vezes necessário.
 tsesqlr_init()
 }
 }
+\seealso{
+Other tsesqlr: 
+\code{\link{tsesqlr_candidatos}()},
+\code{\link{tsesqlr_carregar}()},
+\code{\link{tsesqlr_con}()},
+\code{\link{tsesqlr_resultados}()}
+}
+\concept{tsesqlr}

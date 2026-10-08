@@ -1,0 +1,31 @@
+url: https://distintivelab.github.io/tsesqlr/
+
+lang: pt
+
+template:
+  bootstrap: 5
+
+reference:
+- title: Conexão e schema
+  desc: Abre a conexão ao banco dedicado (`tsedb`) e prepara o schema.
+  contents:
+  - tsesqlr_con
+  - tsesqlr_init
+- title: Carga de dados
+  desc: |
+    Baixa os dados via tsebr e grava no banco de forma idempotente por
+    escopo (`tipo`, `ano`, `uf`).
+  contents:
+  - tsesqlr_carregar
+- title: Consultas
+  desc: Consultas rápidas no banco pré-carregado, sem download.
+  contents:
+  - tsesqlr_resultados
+  - tsesqlr_candidatos
+- title: Detalhes internos
+  desc: Helpers e esquema canônico usados pela carga.
+  contents:
+  - starts_with(".")
+- title: Pacote
+  contents:
+  - tsesqlr-package

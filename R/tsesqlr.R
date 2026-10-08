@@ -50,6 +50,7 @@
 #' DBI::dbListTables(con)
 #' DBI::dbDisconnect(con)
 #' }
+#' @family tsesqlr
 #' @export
 tsesqlr_con <- \(dbname = "tsedb") {
   DBI::dbConnect(
@@ -73,6 +74,7 @@ tsesqlr_con <- \(dbname = "tsedb") {
 #' \dontrun{
 #' tsesqlr_init()
 #' }
+#' @family tsesqlr
 #' @export
 tsesqlr_init <- \(con = NULL) {
   .nossa <- is.null(con)
@@ -190,6 +192,7 @@ tsesqlr_init <- \(con = NULL) {
 #' tsesqlr_carregar("candidatos", 2022, uf = "DF")
 #' tsesqlr_carregar("resultados", 2026, uf = "DF")
 #' }
+#' @family tsesqlr
 #' @export
 tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
                       ano, uf = "all", con = NULL, refrescar = FALSE) {
@@ -336,6 +339,8 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
 #' tsesqlr_resultados(2026, "DF", cargo = "GOVERNADOR")
 #' tsesqlr_resultados(2022, "SP", nr_votavel = 13)
 #' }
+#' @family tsesqlr
+#' @seealso [tsesqlr_candidatos()]
 #' @export
 tsesqlr_resultados <- \(ano, uf, cargo = NULL, nr_votavel = NULL, con = NULL) {
   .nossa <- is.null(con)
@@ -363,6 +368,8 @@ tsesqlr_resultados <- \(ano, uf, cargo = NULL, nr_votavel = NULL, con = NULL) {
 #' tsesqlr_candidatos(2026, "DF", cargo = "GOVERNADOR")
 #' tsesqlr_candidatos(2022, "SP")
 #' }
+#' @family tsesqlr
+#' @seealso [tsesqlr_resultados()]
 #' @export
 tsesqlr_candidatos <- \(ano, uf, cargo = NULL, con = NULL) {
   .nossa <- is.null(con)
