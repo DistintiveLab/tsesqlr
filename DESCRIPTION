@@ -1,7 +1,7 @@
 Package: tsesqlr
 Type: Package
 Title: Banco de dados eleitorais TSE pré-carregado (PostgreSQL)
-Version: 0.0.1.9000
+Version: 0.0.1.9001
 Authors@R: person("DistintiveLab", role = c("aut", "cre"),
     email = "contato@distintive.com.br")
 Description: Camada de persistência para o pacote tsebr: baixa
