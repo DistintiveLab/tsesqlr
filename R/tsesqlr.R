@@ -224,11 +224,33 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
 
 #' Verifica se a tabela do banco casa com nomes e tipos dos dados
 #'
+#' Normaliza nomes de tipo do PostgreSQL para comparacao
+#'
+#' O `information_schema.data_type` vem em minusculas e com os nomes
+#' longos do catalogo (`character varying`, `double precision`),
+#' enquanto [DBI::dbDataType()] (RPostgres) devolve em maiusculas e
+#' com os apelidos curtos (`TEXT`, `DOUBLE PRECISION`). Os dois lados
+#' passam por aqui antes de serem comparados.
+#' @keywords internal
+.normalizar_tipo_pg <- \(x) {
+  x <- tolower(x)
+  x[x %in% c("character varying", "character", "varchar")] <- "text"
+  x[x %in% c("timestamp with time zone", "timestamptz")] <- "timestamptz"
+  x[x %in% c("timestamp without time zone", "timestamp")] <- "timestamp"
+  x[x %in% c("double precision", "float8")] <- "double precision"
+  toupper(x)
+}
+
 #' Compara as colunas e os tipos de `dados` com o que existe em
 #' `information_schema`. Detecta tabelas criadas com layout antigo
 #' em que os nomes batem mas um tipo mudou (ex.: `turno BOOLEAN`
 #' vindo de um `NA` logico) — algo que [DBI::dbWriteTable()] nao
 #' acusaria antes do COPY falhar.
+#'
+#' Os dois lados da comparacao sao normalizados por
+#' [.normalizar_tipo_pg()]: sem isso o `data_type` do PostgreSQL
+#' (minusculo) nunca seria igual ao retorno de [DBI::dbDataType()]
+#' (maiusculo no RPostgres) e toda tabela seria julgada incompativel.
 #' @keywords internal
 .layout_compativel <- \(con, tabela, dados) {
   atuais <- DBI::dbGetQuery(con, paste(
@@ -236,7 +258,8 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
     "WHERE table_name = $1"), params = list(tabela))
   if (!setequal(atuais$column_name, names(dados))) return(FALSE)
   esperado <- vapply(dados, function(x) DBI::dbDataType(con, x), character(1))
-  isTRUE(all(atuais$data_type == toupper(esperado[atuais$column_name])))
+  isTRUE(all(.normalizar_tipo_pg(atuais$data_type) ==
+               .normalizar_tipo_pg(esperado[atuais$column_name])))
 }
 
 #' Carga de um escopo (tipo, ano, uf) — nucleo do [tsesqlr_carregar()]

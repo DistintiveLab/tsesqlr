@@ -2,15 +2,18 @@
 % Please edit documentation in R/tsesqlr.R
 \name{.layout_compativel}
 \alias{.layout_compativel}
-\title{Verifica se a tabela do banco casa com nomes e tipos dos dados}
+\title{Compara as colunas e os tipos de \code{dados} com o que existe em
+\code{information_schema}. Detecta tabelas criadas com layout antigo
+em que os nomes batem mas um tipo mudou (ex.: \verb{turno BOOLEAN}
+vindo de um \code{NA} logico) — algo que \code{\link[DBI:dbWriteTable]{DBI::dbWriteTable()}} nao
+acusaria antes do COPY falhar.}
 \usage{
 .layout_compativel(con, tabela, dados)
 }
 \description{
-Compara as colunas e os tipos de \code{dados} com o que existe em
-\code{information_schema}. Detecta tabelas criadas com layout antigo
-em que os nomes batem mas um tipo mudou (ex.: \verb{turno BOOLEAN}
-vindo de um \code{NA} logico) — algo que \code{\link[DBI:dbWriteTable]{DBI::dbWriteTable()}} nao
-acusaria antes do COPY falhar.
+Os dois lados da comparacao sao normalizados por
+\code{\link[=.normalizar_tipo_pg]{.normalizar_tipo_pg()}}: sem isso o \code{data_type} do PostgreSQL
+(minusculo) nunca seria igual ao retorno de \code{\link[DBI:dbDataType]{DBI::dbDataType()}}
+(maiusculo no RPostgres) e toda tabela seria julgada incompativel.
 }
 \keyword{internal}

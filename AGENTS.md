@@ -120,6 +120,13 @@ invariant.
   On a mismatch, `.carregar_um()` errors and asks for `refrescar = TRUE`; with it,
   it `DROP TABLE`s, clears that table's `cargas` rows, and recreates. Warn users
   that all other loads of that table must be redone.
+- **The two sides of that type comparison use different casing and vocabulary.**
+  `information_schema.columns.data_type` is lowercase Postgres (`integer`,
+  `double precision`, `character varying`) while RPostgres' `dbDataType()` returns
+  uppercase aliases (`INTEGER`, `DOUBLE PRECISION`, `TEXT`). Both sides MUST go
+  through `.normalizar_tipo_pg()` before comparing; a raw `==` makes every column
+  mismatch and turns every load after the first into a `refrescar = TRUE` rebuild
+  (or a hard error). `tests/testthat/` covers this offline.
 - **Beware untyped `NA` when adding a canonical column.** `.padronizar()` fills
   missing columns with `NA` of the canonical type from `.tipos_colunas` (an
   `integer NA` for `turno`, a `Date NA` for `periodo`, etc.). An untyped logical

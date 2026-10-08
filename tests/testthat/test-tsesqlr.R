@@ -48,3 +48,31 @@ test_that("tipos canonicos cobrem todas as colunas do esquema", {
   expect_true(all(tsesqlr:::.tipos_colunas %in%
                     c("integer", "numeric", "character", "Date")))
 })
+
+test_that("normalizar_tipo_pg unifica minusculas, maiusculas e apelidos", {
+  norm <- tsesqlr:::.normalizar_tipo_pg
+  expect_identical(norm(c("integer", "date", "text", "double precision")),
+                   c("INTEGER", "DATE", "TEXT", "DOUBLE PRECISION"))
+  expect_identical(norm(c("character varying", "character", "varchar")),
+                   rep("TEXT", 3))
+  expect_identical(norm(c("TIMESTAMPTZ", "timestamp with time zone")),
+                   rep("TIMESTAMPTZ", 2))
+})
+
+test_that("data_type do Postgres e dbDataType do RPostgres passam a bater", {
+  # O information_schema devolve minusculas, o dbDataType do RPostgres
+  # maiusculas: sem normalizar os dois lados a comparacao dava FALSE em
+  # todas as colunas e a tabela era recriada a cada carga.
+  norm <- tsesqlr:::.normalizar_tipo_pg
+  pg <- c("integer", "date", "text", "integer", "text", "integer",
+          "text", "integer", "text", "double precision")
+  dbi <- c("INTEGER", "DATE", "TEXT", "INTEGER", "TEXT", "INTEGER",
+           "TEXT", "INTEGER", "TEXT", "DOUBLE PRECISION")
+  expect_true(isTRUE(all(norm(pg) == norm(dbi))))
+})
+
+test_that("normalizar_tipo_pg nao confunde tipos diferentes", {
+  norm <- tsesqlr:::.normalizar_tipo_pg
+  expect_false(norm("integer") == norm("boolean"))
+  expect_false(norm("text") == norm("integer"))
+})
