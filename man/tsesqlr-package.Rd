@@ -48,6 +48,7 @@ usadas pelo beep e pelo prepare_db.
 Useful links:
 \itemize{
   \item \url{https://github.com/DistintiveLab/tsesqlr}
+  \item \url{https://distintivelab.github.io/tsesqlr}
   \item Report bugs at \url{https://github.com/DistintiveLab/tsesqlr/issues}
 }
 

@@ -23,9 +23,12 @@ reference:
   - tsesqlr_resultados
   - tsesqlr_candidatos
 - title: Detalhes internos
-  desc: Helpers e esquema canônico usados pela carga.
+  desc: |
+    Helpers e esquema canônico usados pela carga, documentados com
+    `@keywords internal`. O `internal = TRUE` é necessário porque os
+    seletores do pkgdown ignoram tópicos internos por padrão.
   contents:
-  - starts_with(".")
+  - starts_with("\\.", internal = TRUE)
 - title: Pacote
   contents:
   - tsesqlr-package
