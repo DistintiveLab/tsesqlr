@@ -56,7 +56,7 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
   }
   dados <- switch(tipo,
     candidatos = tsebr::tse_candidaturas(ano, uf = uf),
-    resultados = tsebr::tse_resultados_municipio(ano, uf = uf),
+    resultados = if (ano >= 2026) tsebr::tse_boletins(ano, uf = uf) else tsebr::tse_resultados_municipio(ano, uf = uf),
     perfil = tsebr::tse_perfis_secao(ano, uf = uf),
     locais = tsebr::tse_locais_votacao(ano, uf = uf))
   tabela <- switch(tipo,
