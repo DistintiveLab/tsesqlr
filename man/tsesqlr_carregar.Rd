@@ -45,6 +45,14 @@ seção a \strong{município x turno x cargo x votável}, uma UF por vez
 de sessões do R mortas em \code{uf = "all"}); 2026+ usa o boletim de
 urna WEB (bweb) do CKAN com a mesma granularidade. A tabela
 \code{resultados} tem votos por município/candidato/cargo/turno.
+
+Cada carga precisa de espaço livre em \code{tempdir()}: o tsebr extrai o
+ZIP baixado ali antes de ler. O bweb de SP extrai mais de 5 GB, então
+\code{uf = "ALL"} em 2026 exige vários GB livres; aponte \code{TMPDIR} no
+\code{.Renviron} para outro disco se \verb{/tmp} estiver apertado. Se a
+extração falhar no meio, a carga aborta com erro (em vez de gravar um
+CSV cortado sem avisar) e as UFs já gravadas são puladas na próxima
+chamada.
 }
 \examples{
 \dontrun{

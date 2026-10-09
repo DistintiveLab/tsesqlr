@@ -76,3 +76,22 @@ test_that("normalizar_tipo_pg nao confunde tipos diferentes", {
   expect_false(norm("integer") == norm("boolean"))
   expect_false(norm("text") == norm("integer"))
 })
+
+test_that("extracao truncada de ZIP vira erro em vez de carga parcial", {
+  # Util::unzip avisa "write error" quando nao consegue escrever o CSV
+  # extraido (falta de espaco em tempdir()). O tse_read engole o problema
+  # com try(silent = TRUE), o fread le o arquivo cortado e a carga
+  # termina sem erro com menos linhas: dado perdido em silencio.
+  expect_error(
+    tsesqlr:::.ler_tsebr(warning("write error in extracting from zip file"),
+                         "resultados 2026 SP"),
+    "extracao incompleta do ZIP em resultados 2026 SP")
+})
+
+test_that("ler_tsebr deixa passar avisos que nao sao do ZIP", {
+  # Um "single-line footer" benigno do fread nao pode derrubar a carga.
+  expect_warning(
+    tsesqlr:::.ler_tsebr(warning("Discarded single-line footer"), "x"),
+    "Discarded single-line footer")
+  expect_identical(tsesqlr:::.ler_tsebr(42L, "x"), 42L)
+})

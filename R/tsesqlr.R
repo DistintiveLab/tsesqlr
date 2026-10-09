@@ -144,6 +144,39 @@ tsesqlr_init <- \(con = NULL) {
   dados[, colunas, drop = FALSE]
 }
 
+#' Le dados do tsebr transformando extracao truncada de ZIP em erro
+#'
+#' `tsebr::tse_read()` extrai o ZIP com `try(utils::unzip(...), silent =
+#' TRUE)`. Se a extracao falhar no meio (tipicamente falta de espaco em
+#' `tempdir()`, que o `unzip` reporta como *write error*), a funcao segue
+#' adiante e o `data.table::fread()` le o CSV cortado, ainda descartando
+#' a ultima linha parcial como "single-line footer". A carga termina sem
+#' erro nenhum e com menos linhas do que deveria: perda de dados
+#' silenciosa. Aqui o aviso do `unzip` vira erro.
+#'
+#' Todo leitor do tsebr passa por `tse_read()`, entao envolver a chamada
+#' de leitura uma vez cobre boletins, votacao_secao, candidaturas,
+#' perfis e locais.
+#'
+#' @param expr Chamada de leitura do tsebr (avaliada com `expr`).
+#' @param escopo Texto do escopo em carga, usado na mensagem de erro.
+#' @keywords internal
+.ler_tsebr <- \(expr, escopo) {
+  withCallingHandlers(
+    expr,
+    warning = function(w) {
+      if (grepl("extracting from zip file", conditionMessage(w),
+                fixed = TRUE)) {
+        stop("tsesqlr: extracao incompleta do ZIP em ", escopo,
+             ": o CSV foi cortado no meio. O bweb de SP extrai mais de ",
+             "5 GB em ", tempdir(), "; libere espaco ai, remova pastas ",
+             "/tmp/Rtmp* de sessoes do R ja encerradas ou aponte TMPDIR ",
+             "para outro disco no .Renviron, e rode a carga de novo (as ",
+             "UFs ja gravadas sao puladas pela idempotencia).")
+      }
+    })
+}
+
 #' Agrega o boletim de urna WEB por municipio/cargo/votavel
 #' @keywords internal
 .agregar_boletins <- \(ano, uf) {
@@ -175,6 +208,14 @@ tsesqlr_init <- \(con = NULL) {
 #' de sessões do R mortas em `uf = "all"`); 2026+ usa o boletim de
 #' urna WEB (bweb) do CKAN com a mesma granularidade. A tabela
 #' `resultados` tem votos por município/candidato/cargo/turno.
+#'
+#' Cada carga precisa de espaço livre em `tempdir()`: o tsebr extrai o
+#' ZIP baixado ali antes de ler. O bweb de SP extrai mais de 5 GB, então
+#' `uf = "ALL"` em 2026 exige vários GB livres; aponte `TMPDIR` no
+#' `.Renviron` para outro disco se `/tmp` estiver apertado. Se a
+#' extração falhar no meio, a carga aborta com erro (em vez de gravar um
+#' CSV cortado sem avisar) e as UFs já gravadas são puladas na próxima
+#' chamada.
 #'
 #' @param tipo Tipo de dado: `"candidatos"`, `"resultados"`,
 #'   `"perfil"` ou `"locais"`.
@@ -281,12 +322,14 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
   uf_dados <- if (identical(uf, "ALL")) {
     if (tipo == "locais") NULL else "all"
   } else uf
-  dados <- switch(tipo,
-    candidatos = tsebr::tse_candidaturas(ano, uf = uf_dados),
-    resultados = if (ano >= 2026) .agregar_boletins(ano, uf_dados) else
-      tsebr::tse_votacao_municipio(ano, uf = uf_dados),
-    perfil = tsebr::tse_perfis_secao(ano, uf = uf_dados),
-    locais = tsebr::tse_locais_votacao(ano, uf = uf_dados))
+  dados <- .ler_tsebr(
+    switch(tipo,
+      candidatos = tsebr::tse_candidaturas(ano, uf = uf_dados),
+      resultados = if (ano >= 2026) .agregar_boletins(ano, uf_dados) else
+        tsebr::tse_votacao_municipio(ano, uf = uf_dados),
+      perfil = tsebr::tse_perfis_secao(ano, uf = uf_dados),
+      locais = tsebr::tse_locais_votacao(ano, uf = uf_dados)),
+    escopo = paste(tipo, ano, uf))
   ## padroniza nomes de colunas-chave (tsebr conforma parcialmente)
   renomear <- c(ANO_ELEICAO = "ano", SG_UE = "cod_municipio_tse",
                 NM_UE = "municipio", SG_UF = "uf",

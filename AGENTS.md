@@ -127,6 +127,17 @@ invariant.
   through `.normalizar_tipo_pg()` before comparing; a raw `==` makes every column
   mismatch and turns every load after the first into a `refrescar = TRUE` rebuild
   (or a hard error). `tests/testthat/` covers this offline.
+- **A truncated ZIP extraction silently truncates the load.** `tsebr::tse_read()`
+  extracts with `try(utils::unzip(...), silent = TRUE)`. When the write fails
+  mid-file (in practice: not enough free space in `tempdir()`, which `unzip`
+  reports as `write error in extracting from zip file`) the error is swallowed,
+  `fread()` reads the cut CSV and merely drops the partial last line as
+  `Discarded single-line footer`, and the load reports success with fewer rows.
+  Every tsebr read in `.carregar_um()` therefore goes through `.ler_tsebr()`,
+  which promotes that specific `unzip` warning into a hard error before anything
+  is written to the DB. Do not add a raw `tsebr::` read call outside
+  `.ler_tsebr()`. Budget disk: SP's bweb extracts to >5 GB, so a 2026
+  `uf = "ALL"` run needs several GB free on the `tempdir()` filesystem.
 - **Beware untyped `NA` when adding a canonical column.** `.padronizar()` fills
   missing columns with `NA` of the canonical type from `.tipos_colunas` (an
   `integer NA` for `turno`, a `Date NA` for `periodo`, etc.). An untyped logical
