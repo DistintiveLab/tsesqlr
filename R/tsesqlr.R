@@ -168,11 +168,16 @@ tsesqlr_init <- \(con = NULL) {
       if (grepl("extracting from zip file", conditionMessage(w),
                 fixed = TRUE)) {
         stop("tsesqlr: extracao incompleta do ZIP em ", escopo,
-             ": o CSV foi cortado no meio. O bweb de SP extrai mais de ",
-             "5 GB em ", tempdir(), "; libere espaco ai, remova pastas ",
-             "/tmp/Rtmp* de sessoes do R ja encerradas ou aponte TMPDIR ",
-             "para outro disco no .Renviron, e rode a carga de novo (as ",
-             "UFs ja gravadas sao puladas pela idempotencia).")
+             ": o CSV foi cortado no meio por falta de espaco para ",
+             "escrever em ", tempdir(), ". O bweb de SP extrai 7,75 GiB ",
+             "e essa extracao conta contra a cota de disco do usuario, ",
+             "nao so contra o espaco livre do sistema: confira com ",
+             "'quota -s', que pode acusar aperto mesmo com 'df' folgado. ",
+             "Remova /tmp/Rtmp* de sessoes do R ja encerradas ou aponte ",
+             "TMPDIR no .Renviron para outro disco e rode a carga de ",
+             "novo: as UFs ja gravadas sao puladas. Se uma tentativa ",
+             "anterior chegou a gravar este escopo cortado, recarregue-o ",
+             "com refrescar = TRUE.")
       }
     })
 }
@@ -209,13 +214,16 @@ tsesqlr_init <- \(con = NULL) {
 #' urna WEB (bweb) do CKAN com a mesma granularidade. A tabela
 #' `resultados` tem votos por município/candidato/cargo/turno.
 #'
-#' Cada carga precisa de espaço livre em `tempdir()`: o tsebr extrai o
-#' ZIP baixado ali antes de ler. O bweb de SP extrai mais de 5 GB, então
-#' `uf = "ALL"` em 2026 exige vários GB livres; aponte `TMPDIR` no
-#' `.Renviron` para outro disco se `/tmp` estiver apertado. Se a
-#' extração falhar no meio, a carga aborta com erro (em vez de gravar um
-#' CSV cortado sem avisar) e as UFs já gravadas são puladas na próxima
-#' chamada.
+#' Cada carga precisa de espaço em `tempdir()`, onde o tsebr extrai o ZIP
+#' baixado antes de ler. O bweb de SP extrai 7,75 GiB, então `uf = "ALL"`
+#' em 2026 exige vários GB. Isso é limitado pela cota de disco do usuário
+#' (`quota -s`), não só pelo espaço livre mostrado por `df`: numa máquina
+#' com cota, `/tmp` pode encher antes do resto do sistema. Aponte `TMPDIR`
+#' no `.Renviron` para outro disco se `/tmp` estiver apertado, e limpe
+#' `/tmp/Rtmp*` de sessões do R encerradas, que chegam facilmente a dezenas
+#' de GB. Se a extração falhar no meio, a carga aborta com erro (em vez de
+#' gravar um CSV cortado sem avisar); as UFs já gravadas são puladas na
+#' chamada seguinte.
 #'
 #' @param tipo Tipo de dado: `"candidatos"`, `"resultados"`,
 #'   `"perfil"` ou `"locais"`.

@@ -46,13 +46,16 @@ de sessões do R mortas em \code{uf = "all"}); 2026+ usa o boletim de
 urna WEB (bweb) do CKAN com a mesma granularidade. A tabela
 \code{resultados} tem votos por município/candidato/cargo/turno.
 
-Cada carga precisa de espaço livre em \code{tempdir()}: o tsebr extrai o
-ZIP baixado ali antes de ler. O bweb de SP extrai mais de 5 GB, então
-\code{uf = "ALL"} em 2026 exige vários GB livres; aponte \code{TMPDIR} no
-\code{.Renviron} para outro disco se \verb{/tmp} estiver apertado. Se a
-extração falhar no meio, a carga aborta com erro (em vez de gravar um
-CSV cortado sem avisar) e as UFs já gravadas são puladas na próxima
-chamada.
+Cada carga precisa de espaço em \code{tempdir()}, onde o tsebr extrai o ZIP
+baixado antes de ler. O bweb de SP extrai 7,75 GiB, então \code{uf = "ALL"}
+em 2026 exige vários GB. Isso é limitado pela cota de disco do usuário
+(\code{quota -s}), não só pelo espaço livre mostrado por \code{df}: numa máquina
+com cota, \verb{/tmp} pode encher antes do resto do sistema. Aponte \code{TMPDIR}
+no \code{.Renviron} para outro disco se \verb{/tmp} estiver apertado, e limpe
+\verb{/tmp/Rtmp*} de sessões do R encerradas, que chegam facilmente a dezenas
+de GB. Se a extração falhar no meio, a carga aborta com erro (em vez de
+gravar um CSV cortado sem avisar); as UFs já gravadas são puladas na
+chamada seguinte.
 }
 \examples{
 \dontrun{

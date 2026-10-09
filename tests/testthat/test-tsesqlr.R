@@ -79,9 +79,10 @@ test_that("normalizar_tipo_pg nao confunde tipos diferentes", {
 
 test_that("extracao truncada de ZIP vira erro em vez de carga parcial", {
   # Util::unzip avisa "write error" quando nao consegue escrever o CSV
-  # extraido (falta de espaco em tempdir()). O tse_read engole o problema
-  # com try(silent = TRUE), o fread le o arquivo cortado e a carga
-  # termina sem erro com menos linhas: dado perdido em silencio.
+  # extraido (falta de espaco em tempdir(), na pratica a cota de disco
+  # do usuario). O tse_read engole o problema com try(silent = TRUE), o
+  # fread le o arquivo cortado e a carga termina sem erro com menos
+  # linhas: dado perdido em silencio.
   expect_error(
     tsesqlr:::.ler_tsebr(warning("write error in extracting from zip file"),
                          "resultados 2026 SP"),

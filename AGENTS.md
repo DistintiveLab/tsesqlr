@@ -129,15 +129,22 @@ invariant.
   (or a hard error). `tests/testthat/` covers this offline.
 - **A truncated ZIP extraction silently truncates the load.** `tsebr::tse_read()`
   extracts with `try(utils::unzip(...), silent = TRUE)`. When the write fails
-  mid-file (in practice: not enough free space in `tempdir()`, which `unzip`
-  reports as `write error in extracting from zip file`) the error is swallowed,
-  `fread()` reads the cut CSV and merely drops the partial last line as
-  `Discarded single-line footer`, and the load reports success with fewer rows.
+  mid-file, `unzip` reports `write error in extracting from zip file`, the error
+  is swallowed, `fread()` reads the cut CSV and merely drops the partial last line
+  as `Discarded single-line footer`, and the load reports success with fewer rows.
   Every tsebr read in `.carregar_um()` therefore goes through `.ler_tsebr()`,
   which promotes that specific `unzip` warning into a hard error before anything
   is written to the DB. Do not add a raw `tsebr::` read call outside
-  `.ler_tsebr()`. Budget disk: SP's bweb extracts to >5 GB, so a 2026
-  `uf = "ALL"` run needs several GB free on the `tempdir()` filesystem.
+  `.ler_tsebr()`.
+- **The real space limit is the per-user disk quota, not `df`.** Observed on this
+  host: `distintive` has a 60 GiB ext4 quota (`quota -s`); `df` showed tens of GB
+  free while every write past the quota failed. The extraction runs in
+  `tempdir()` (`/tmp`, same filesystem as `/`), and SP's 2026 bweb is the worst
+  case: `bweb_1t_SP_051020261403.zip` holds an 8,316,061,252-byte CSV (7.75 GiB),
+  by far the largest bweb (RJ is 3.1 GiB). Stale `/tmp/Rtmp*` directories from
+  killed R sessions grow to tens of GB and eat the quota, which is what broke a
+  2026 `uf = "ALL"` load of SP. Check with `quota -s` before blaming free space,
+  and set `TMPDIR` to another filesystem when `/tmp` is tight.
 - **Beware untyped `NA` when adding a canonical column.** `.padronizar()` fills
   missing columns with `NA` of the canonical type from `.tipos_colunas` (an
   `integer NA` for `turno`, a `Date NA` for `periodo`, etc.). An untyped logical
