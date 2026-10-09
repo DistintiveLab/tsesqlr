@@ -11,7 +11,7 @@ cargas subsequentes fazem DELETE do escopo (ano+UF) e INSERT limpo."></head><bod
 
     <a class="navbar-brand me-2" href="../index.html">tsesqlr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9009</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9010</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -95,13 +95,16 @@ seção a <strong>município x turno x cargo x votável</strong>, uma UF por vez
 de sessões do R mortas em <code>uf = "all"</code>); 2026+ usa o boletim de
 urna WEB (bweb) do CKAN com a mesma granularidade. A tabela
 <code>resultados</code> tem votos por município/candidato/cargo/turno.</p>
-<p>Cada carga precisa de espaço livre em <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code>: o tsebr extrai o
-ZIP baixado ali antes de ler. O bweb de SP extrai mais de 5 GB, então
-<code>uf = "ALL"</code> em 2026 exige vários GB livres; aponte <code>TMPDIR</code> no
-<code>.Renviron</code> para outro disco se <code>/tmp</code> estiver apertado. Se a
-extração falhar no meio, a carga aborta com erro (em vez de gravar um
-CSV cortado sem avisar) e as UFs já gravadas são puladas na próxima
-chamada.</p>
+<p>Cada carga precisa de espaço em <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code>, onde o tsebr extrai o ZIP
+baixado antes de ler. O bweb de SP extrai 7,75 GiB, então <code>uf = "ALL"</code>
+em 2026 exige vários GB. Isso é limitado pela cota de disco do usuário
+(<code>quota -s</code>), não só pelo espaço livre mostrado por <code>df</code>: numa máquina
+com cota, <code>/tmp</code> pode encher antes do resto do sistema. Aponte <code>TMPDIR</code>
+no <code>.Renviron</code> para outro disco se <code>/tmp</code> estiver apertado, e limpe
+<code>/tmp/Rtmp*</code> de sessões do R encerradas, que chegam facilmente a dezenas
+de GB. Se a extração falhar no meio, a carga aborta com erro (em vez de
+gravar um CSV cortado sem avisar); as UFs já gravadas são puladas na
+chamada seguinte.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

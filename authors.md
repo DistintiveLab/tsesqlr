@@ -10,13 +10,13 @@ Source:
 [`DESCRIPTION`](https://github.com/DistintiveLab/tsesqlr/blob/main/DESCRIPTION)
 
 DistintiveLab (2026). *tsesqlr: Banco de dados eleitorais TSE
-pré-carregado (PostgreSQL)*. R package version 0.0.1.9009,
+pré-carregado (PostgreSQL)*. R package version 0.0.1.9010,
 <https://github.com/DistintiveLab/tsesqlr>.
 
     @Manual{,
       title = {tsesqlr: Banco de dados eleitorais TSE pré-carregado (PostgreSQL)},
       author = {{DistintiveLab}},
       year = {2026},
-      note = {R package version 0.0.1.9009},
+      note = {R package version 0.0.1.9010},
       url = {https://github.com/DistintiveLab/tsesqlr},
     }
