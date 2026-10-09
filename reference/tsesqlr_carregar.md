@@ -59,6 +59,14 @@ mortas em `uf = "all"`); 2026+ usa o boletim de urna WEB (bweb) do CKAN
 com a mesma granularidade. A tabela `resultados` tem votos por
 município/candidato/cargo/turno.
 
+Cada carga precisa de espaço livre em
+[`tempdir()`](https://rdrr.io/r/base/tempfile.html): o tsebr extrai o
+ZIP baixado ali antes de ler. O bweb de SP extrai mais de 5 GB, então
+`uf = "ALL"` em 2026 exige vários GB livres; aponte `TMPDIR` no
+`.Renviron` para outro disco se `/tmp` estiver apertado. Se a extração
+falhar no meio, a carga aborta com erro (em vez de gravar um CSV cortado
+sem avisar) e as UFs já gravadas são puladas na próxima chamada.
+
 ## See also
 
 Other tsesqlr:

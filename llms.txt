@@ -105,6 +105,9 @@ seletores do pkgdown ignoram tópicos internos por padrão.
   [`DBI::dbWriteTable()`](https://dbi.r-dbi.org/reference/dbWriteTable.html)
   nao acusaria antes do COPY falhar.
 
+- [`.ler_tsebr()`](https://distintivelab.github.io/tsesqlr/reference/dot-ler_tsebr.md)
+  : Le dados do tsebr transformando extracao truncada de ZIP em erro
+
 - [`.normalizar_tipo_pg()`](https://distintivelab.github.io/tsesqlr/reference/dot-normalizar_tipo_pg.md)
   : Verifica se a tabela do banco casa com nomes e tipos dos dados
 
