@@ -1,7 +1,10 @@
 # Inicializa o schema do tsedb
 
-Cria a tabela `cargas` (controle de idempotência). As tabelas de dados
-são criadas dinamicamente no primeiro
+Cria a tabela `cargas` (controle de idempotência) e os índices das
+tabelas de dados que já existirem
+([.indices_tabelas](https://distintivelab.github.io/tsesqlr/reference/dot-indices_tabelas.md))
+— caminho de upgrade para bancos carregados antes de haver índices. As
+tabelas de dados em si são criadas dinamicamente no primeiro
 [`tsesqlr_carregar()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_carregar.md)
 com as colunas do data.frame do tsebr. Idempotente — pode ser chamado
 quantas vezes necessário.

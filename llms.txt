@@ -102,6 +102,12 @@ seletores do pkgdown ignoram tópicos internos por padrão.
   Carga de um escopo (tipo, ano, uf) — nucleo do
   [`tsesqlr_carregar()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_carregar.md)
 
+- [`.criar_indices()`](https://distintivelab.github.io/tsesqlr/reference/dot-criar_indices.md)
+  : Cria os indices de uma tabela de dados, se ela existir
+
+- [`.indices_tabelas`](https://distintivelab.github.io/tsesqlr/reference/dot-indices_tabelas.md)
+  : Indices das tabelas de dados
+
 - [`.layout_compativel()`](https://distintivelab.github.io/tsesqlr/reference/dot-layout_compativel.md)
   :
 
