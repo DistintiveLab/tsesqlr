@@ -194,6 +194,11 @@ unless you set up skips. `Config/testthat/edition: 3`.
 - The repo has no `user.name`/`user.email` configured; commits have been authored
   as `Rodrigo Borges <rodrigoesborges@gmail.com>`. Pass the identity via
   `GIT_AUTHOR_*`/`GIT_COMMITTER_*` env vars rather than changing git config.
+- **Always run the tests and push to `main`.** As soon as a change is logically
+  sound and `devtools::test()` passes, commit it and `git push origin main` —
+  no need to ask first. The `pkgdown` workflow builds on every push to `main`,
+  so the push is also what republishes the site; check the run with
+  `gh run list --limit 3` afterwards.
 
 ## Site de documentação (pkgdown)
 
