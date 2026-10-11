@@ -94,6 +94,36 @@ tsesqlr_init <- \(con = NULL) {
              "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR",
              "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO")
 
+#' Anos com votacao por secao publicada pelo TSE
+#'
+#' O CDN do TSE so tem `votacao_secao_<ano>_<UF>.zip` nos anos pares de
+#' eleicao geral a partir de 1998. Antes disso (1994 e 1996) existe
+#' apenas votacao agregada por municipio/zona
+#' (`votacao_candidato_munzona_<ano>.zip`), sem detalhe por secao.
+#' @keywords internal
+.anos_resultados_secao <- seq(1998L, 2024L, by = 2L)
+
+#' Valida o ano pedido para a tabela `resultados`
+#'
+#' Falha antes de abrir conexao e de baixar qualquer arquivo. Sem isso o
+#' pedido so morre no meio da carga com um 404 cru do CDN
+#' (`tse_download: falha ao baixar ...`), que nao diz que o conjunto
+#' simplesmente nao existe para aquele ano.
+#' @keywords internal
+.verificar_ano_resultados <- \(ano) {
+  if (ano >= 2026L || ano %in% .anos_resultados_secao) return(invisible(ano))
+  stop("tsesqlr: 'resultados' nao existe para ", ano, ". O TSE publica ",
+       "votacao por secao apenas em ano de eleicao geral: ",
+       paste(.anos_resultados_secao, collapse = ", "),
+       " (um arquivo votacao_secao_<ano>_<UF>.zip por UF) e de 2026 em ",
+       "diante pelo boletim de urna. Para 1994 e 1996 ha so a votacao ",
+       "agregada por municipio/zona (votacao_candidato_munzona), sem ",
+       "detalhe por secao, que o tsesqlr ainda nao le; nesses anos da ",
+       "para carregar 'candidatos', que existe desde 1994. Para o ",
+       "conjunto completo de anos de cada tipo veja ",
+       "tsebr::tse_anos_disponiveis().")
+}
+
 #' Colunas canonicas por tabela (esquema estavel entre anos/ciclos)
 #' @keywords internal
 .padrao_colunas <- list(
@@ -158,12 +188,24 @@ tsesqlr_init <- \(con = NULL) {
 #' de leitura uma vez cobre boletins, votacao_secao, candidaturas,
 #' perfis e locais.
 #'
+#' O erro de download (`tse_download: falha ao baixar ...`) tambem ganha
+#' contexto: o 404 do CDN do TSE quase sempre significa que o conjunto
+#' nao existe para aquele ano, e nao um problema de rede.
 #' @param expr Chamada de leitura do tsebr (avaliada com `expr`).
 #' @param escopo Texto do escopo em carga, usado na mensagem de erro.
 #' @keywords internal
 .ler_tsebr <- \(expr, escopo) {
   withCallingHandlers(
-    expr,
+    tryCatch(expr, error = function(e) {
+      if (grepl("falha ao baixar", conditionMessage(e), fixed = TRUE)) {
+        stop("tsesqlr: o CDN do TSE nao tem os dados de ", escopo,
+             " (404). Confira se o conjunto existe para esse ano ",
+             "(veja tsebr::tse_anos_disponiveis() e a secao de detalhes ",
+             "de ?tsesqlr_carregar). Erro original: ",
+             conditionMessage(e), call. = FALSE)
+      }
+      stop(e)
+    }),
     warning = function(w) {
       if (grepl("extracting from zip file", conditionMessage(w),
                 fixed = TRUE)) {
@@ -214,6 +256,16 @@ tsesqlr_init <- \(con = NULL) {
 #' urna WEB (bweb) do CKAN com a mesma granularidade. A tabela
 #' `resultados` tem votos por município/candidato/cargo/turno.
 #'
+#' `resultados` só existe onde o TSE publica votação por seção: anos
+#' pares de eleição geral de 1998 a 2024 (`votacao_secao_<ano>_<UF>.zip`)
+#' e 2026 em diante (boletim de urna WEB). Anos ímpares, anteriores a
+#' 1998 ou fora do calendário eleitoral abortam na hora, antes de
+#' qualquer download, com a lista de anos válidos ([.verificar_ano_resultados()]).
+#' Em 1994 e 1996 o TSE só tem votação agregada por município/zona
+#' (`votacao_candidato_munzona`), sem detalhe por seção, que o tsesqlr
+#' ainda não lê; para esses anos use `tipo = "candidatos"`, disponível
+#' desde 1994.
+#'
 #' Cada carga precisa de espaço em `tempdir()`, onde o tsebr extrai o ZIP
 #' baixado antes de ler. O bweb de SP extrai 7,75 GiB, então `uf = "ALL"`
 #' em 2026 exige vários GB. Isso é limitado pela cota de disco do usuário
@@ -227,7 +279,8 @@ tsesqlr_init <- \(con = NULL) {
 #'
 #' @param tipo Tipo de dado: `"candidatos"`, `"resultados"`,
 #'   `"perfil"` ou `"locais"`.
-#' @param ano Ano eleitoral (1996..2026).
+#' @param ano Ano eleitoral. Para `"resultados"`, apenas 1998..2024
+#'   (pares) e 2026+; os demais valores abortam antes do download.
 #' @param uf Sigla da UF ou `"all"` para todas as 27 UFs.
 #'   Para `"all"` em resultados, o download é pesado (vários GB).
 #' @param con Conexao DBI; default abre via [tsesqlr_con()].
@@ -246,6 +299,8 @@ tsesqlr_init <- \(con = NULL) {
 tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
                       ano, uf = "all", con = NULL, refrescar = FALSE) {
   tipo <- match.arg(tipo)
+  ano <- as.integer(ano)
+  if (tipo == "resultados") .verificar_ano_resultados(ano)
   .nossa <- is.null(con)
   if (.nossa) con <- tsesqlr_con()
   on.exit(if (.nossa) DBI::dbDisconnect(con), add = TRUE)

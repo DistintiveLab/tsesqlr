@@ -145,6 +145,17 @@ invariant.
   killed R sessions grow to tens of GB and eat the quota, which is what broke a
   2026 `uf = "ALL"` load of SP. Check with `quota -s` before blaming free space,
   and set `TMPDIR` to another filesystem when `/tmp` is tight.
+- **`resultados` only exists for years with published vote-by-section data.**
+  The TSE CDN 404s on `votacao_secao_<ano>_<UF>.zip` for odd years and anything
+  before 1998 (checked year by year 1996..2026: 1998..2024 even return 200,
+  everything else 404). 1994 and 1996 have only municipality/zone aggregates
+  (`votacao_candidato_munzona`, for which tsebr has no layout), no section-level
+  data. `tsesqlr_carregar()` therefore validates the year up front with
+  `.verificar_ano_resultados()` — before opening a connection or downloading
+  anything — instead of dying midway with a bare download error (which is what a
+  user hit with `ano = 1996`). `.ler_tsebr()` also adds context to any
+  `tse_download: falha ao baixar` error: a 404 there means the dataset does not
+  exist for that year, not a network problem. `candidatos` works from 1994 on.
 - **Beware untyped `NA` when adding a canonical column.** `.padronizar()` fills
   missing columns with `NA` of the canonical type from `.tipos_colunas` (an
   `integer NA` for `turno`, a `Date NA` for `periodo`, etc.). An untyped logical

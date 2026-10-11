@@ -96,3 +96,37 @@ test_that("ler_tsebr deixa passar avisos que nao sao do ZIP", {
     "Discarded single-line footer")
   expect_identical(tsesqlr:::.ler_tsebr(42L, "x"), 42L)
 })
+
+test_that("ler_tsebr deixa passar erros que nao sao de download", {
+  expect_error(tsesqlr:::.ler_tsebr(stop("arquivo corrompido"), "x"),
+               "arquivo corrompido")
+})
+
+test_that("ler_tsebr contextualiza o 404 do download", {
+  # O CDN do TSE responde 404 quando o conjunto nao existe para aquele
+  # ano; sem contexto o erro cru do tse_download nao diz isso.
+  expect_error(
+    tsesqlr:::.ler_tsebr(
+      stop("tse_download: falha ao baixar https://cdn.tse.jus.br/x.zip: ",
+           "cannot open URL 'https://cdn.tse.jus.br/x.zip'"),
+      "resultados 1996 AC"),
+    "CDN do TSE nao tem os dados de resultados 1996 AC")
+})
+
+test_that("verificar_ano_resultados aceita os anos com votacao por secao", {
+  verificar <- tsesqlr:::.verificar_ano_resultados
+  for (a in c(1998L, 2000L, 2022L, 2024L, 2026L, 2030L)) {
+    expect_silent(verificar(a))
+  }
+})
+
+test_that("verificar_ano_resultados recusa anos sem votacao por secao", {
+  verificar <- tsesqlr:::.verificar_ano_resultados
+  # 1996 tem so votacao agregada por municipio/zona; os impares nao tem
+  # eleicao geral. Sem a guarda o erro so aparecia como 404 no meio da carga.
+  for (a in c(1994L, 1996L, 1997L, 2025L)) {
+    expect_error(verificar(a), "'resultados' nao existe para")
+  }
+  expect_error(verificar(1996L), "candidatos")
+  expect_error(verificar(1996L), "1998, 2000")
+})

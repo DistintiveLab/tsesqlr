@@ -16,7 +16,8 @@ tsesqlr_carregar(
 \item{tipo}{Tipo de dado: \code{"candidatos"}, \code{"resultados"},
 \code{"perfil"} ou \code{"locais"}.}
 
-\item{ano}{Ano eleitoral (1996..2026).}
+\item{ano}{Ano eleitoral. Para \code{"resultados"}, apenas 1998..2024
+(pares) e 2026+; os demais valores abortam antes do download.}
 
 \item{uf}{Sigla da UF ou \code{"all"} para todas as 27 UFs.
 Para \code{"all"} em resultados, o download é pesado (vários GB).}
@@ -45,6 +46,16 @@ seção a \strong{município x turno x cargo x votável}, uma UF por vez
 de sessões do R mortas em \code{uf = "all"}); 2026+ usa o boletim de
 urna WEB (bweb) do CKAN com a mesma granularidade. A tabela
 \code{resultados} tem votos por município/candidato/cargo/turno.
+
+\code{resultados} só existe onde o TSE publica votação por seção: anos
+pares de eleição geral de 1998 a 2024 (\verb{votacao_secao_<ano>_<UF>.zip})
+e 2026 em diante (boletim de urna WEB). Anos ímpares, anteriores a
+1998 ou fora do calendário eleitoral abortam na hora, antes de
+qualquer download, com a lista de anos válidos (\code{\link[=.verificar_ano_resultados]{.verificar_ano_resultados()}}).
+Em 1994 e 1996 o TSE só tem votação agregada por município/zona
+(\code{votacao_candidato_munzona}), sem detalhe por seção, que o tsesqlr
+ainda não lê; para esses anos use \code{tipo = "candidatos"}, disponível
+desde 1994.
 
 Cada carga precisa de espaço em \code{tempdir()}, onde o tsebr extrai o ZIP
 baixado antes de ler. O bweb de SP extrai 7,75 GiB, então \code{uf = "ALL"}
