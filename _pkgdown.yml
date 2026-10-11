@@ -21,7 +21,9 @@ reference:
   desc: Consultas rápidas no banco pré-carregado, sem download.
   contents:
   - tsesqlr_resultados
+  - tsesqlr_resultados_municipio
   - tsesqlr_candidatos
+  - tsesqlr_disponivel
 - title: Detalhes internos
   desc: |
     Helpers e esquema canônico usados pela carga, documentados com

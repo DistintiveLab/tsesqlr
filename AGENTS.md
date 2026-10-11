@@ -199,6 +199,11 @@ unless you set up skips. `Config/testthat/edition: 3`.
   no need to ask first. The `pkgdown` workflow builds on every push to `main`,
   so the push is also what republishes the site; check the run with
   `gh run list --limit 3` afterwards.
+- **Run `pkgdown::check_pkgdown()` before pushing too.** A new exported function
+  that is not listed in `_pkgdown.yml` makes `build_reference_index()` abort the
+  workflow (`In _pkgdown.yml, N topics missing from index`), and `devtools::test()`
+  does not catch it. Adding an export means adding its topic to the right section
+  of `_pkgdown.yml` in the same commit.
 
 ## Site de documentação (pkgdown)
 
