@@ -158,6 +158,29 @@ tsesqlr_init <- \(con = NULL) {
        "tsebr::tse_anos_disponiveis().")
 }
 
+#' Confere que os dados lidos pertencem ao escopo de UF pedido
+#'
+#' Rede de segurança contra leitura de arquivo errado: se o downloader
+#' escolher o recurso de outra UF (foi o caso do bweb 2026, em que o
+#' casamento por nome casou "PR" em "Primeiro turno" e gravou dados
+#' de AC nos escopos PR/RN/RO), a carga aborta antes de apagar ou
+#' gravar qualquer linha do banco.
+#' @keywords internal
+.verificar_uf_dados <- \(dados, uf) {
+  if (identical(uf, "ALL") || !"uf" %in% names(dados)) {
+    return(invisible(TRUE))
+  }
+  ufs <- unique(toupper(dados$uf))
+  if (length(ufs) != 1L || !identical(ufs, uf)) {
+    stop("tsesqlr: os dados baixados para o escopo ", uf,
+         " vieram com uf = ", paste(sort(ufs), collapse = ", "),
+         " (arquivo errado?): nada foi gravado no banco. Baixe de ",
+         "novo e, se o erro persistir, recarregue com refrescar = ",
+         "TRUE depois de resolver.")
+  }
+  invisible(TRUE)
+}
+
 #' Colunas canonicas por tabela (esquema estavel entre anos/ciclos)
 #' @keywords internal
 .padrao_colunas <- list(
@@ -444,6 +467,7 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais",
     if (de %in% names(dados)) names(dados)[names(dados) == de] <- renomear[[de]]
   }
   dados <- .padronizar(dados, .padrao_colunas[[tabela]], ano)
+  .verificar_uf_dados(dados, uf)
   existe <- DBI::dbGetQuery(con, paste(
     "SELECT 1 FROM information_schema.tables WHERE table_name = $1"),
     params = list(tabela))

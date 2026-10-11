@@ -5,7 +5,7 @@
 \alias{.padrao_colunas}
 \title{Colunas canonicas por tabela (esquema estavel entre anos/ciclos)}
 \format{
-An object of class \code{list} of length 4.
+An object of class \code{list} of length 5.
 }
 \usage{
 .padrao_colunas

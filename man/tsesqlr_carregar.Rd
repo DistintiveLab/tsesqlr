@@ -5,7 +5,7 @@
 \title{Carrega dados eleitorais no tsedb}
 \usage{
 tsesqlr_carregar(
-  tipo = c("candidatos", "resultados", "perfil", "locais"),
+  tipo = c("candidatos", "resultados", "perfil", "locais", "detalhe"),
   ano,
   uf = "all",
   con = NULL,

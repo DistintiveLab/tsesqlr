@@ -140,3 +140,22 @@ test_that("verificar_ano_resultados recusa anos sem votacao por secao", {
   expect_error(verificar(1996L), "candidatos")
   expect_error(verificar(1996L), "1998, 2000")
 })
+
+test_that("verificar_uf_dados aceita escopo com a uf certa e pula ALL", {
+  d <- data.frame(uf = c("AC", "AC"), votos = 1:2)
+  expect_silent(tsesqlr:::.verificar_uf_dados(d, "AC"))
+  expect_silent(tsesqlr:::.verificar_uf_dados(data.frame(uf = "ZZ"), "ALL"))
+  # sem coluna uf nao ha o que conferir
+  expect_silent(tsesqlr:::.verificar_uf_dados(data.frame(x = 1), "PR"))
+})
+
+test_that("verificar_uf_dados aborta arquivo errado antes de gravar", {
+  # bweb 2026: casamento por nome entregou dados de AC nos escopos
+  # PR/RN/RO; a guarda barra isso antes do DELETE/INSERT
+  d <- data.frame(uf = c("AC", "AC"), votos = 1:2)
+  expect_error(tsesqlr:::.verificar_uf_dados(d, "PR"), "uf = AC")
+  dois <- data.frame(uf = c("PR", "AC"), votos = 1:2)
+  expect_error(tsesqlr:::.verificar_uf_dados(dois, "PR"), "AC, PR")
+  expect_error(tsesqlr:::.verificar_uf_dados(data.frame(uf = NA), "PR"),
+               "nada foi gravado")
+})
