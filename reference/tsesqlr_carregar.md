@@ -25,7 +25,8 @@ tsesqlr_carregar(
 
 - ano:
 
-  Ano eleitoral (1996..2026).
+  Ano eleitoral. Para `"resultados"`, apenas 1998..2024 (pares) e 2026+;
+  os demais valores abortam antes do download.
 
 - uf:
 
@@ -58,6 +59,17 @@ nacional por seção não cabe em memória — era a causa de sessões do R
 mortas em `uf = "all"`); 2026+ usa o boletim de urna WEB (bweb) do CKAN
 com a mesma granularidade. A tabela `resultados` tem votos por
 município/candidato/cargo/turno.
+
+`resultados` só existe onde o TSE publica votação por seção: anos pares
+de eleição geral de 1998 a 2024 (`votacao_secao_<ano>_<UF>.zip`) e 2026
+em diante (boletim de urna WEB). Anos ímpares, anteriores a 1998 ou fora
+do calendário eleitoral abortam na hora, antes de qualquer download, com
+a lista de anos válidos
+([`.verificar_ano_resultados()`](https://distintivelab.github.io/tsesqlr/reference/dot-verificar_ano_resultados.md)).
+Em 1994 e 1996 o TSE só tem votação agregada por município/zona
+(`votacao_candidato_munzona`), sem detalhe por seção, que o tsesqlr
+ainda não lê; para esses anos use `tipo = "candidatos"`, disponível
+desde 1994.
 
 Cada carga precisa de espaço em
 [`tempdir()`](https://rdrr.io/r/base/tempfile.html), onde o tsebr extrai

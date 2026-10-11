@@ -17,7 +17,7 @@ silenciosa. Aqui o aviso do unzip vira erro.'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">tsesqlr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9010</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9011</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -73,6 +73,9 @@ silenciosa. Aqui o aviso do <code>unzip</code> vira erro.</p>
     <p>Todo leitor do tsebr passa por <code>tse_read()</code>, entao envolver a chamada
 de leitura uma vez cobre boletins, votacao_secao, candidaturas,
 perfis e locais.</p>
+<p>O erro de download (<code>tse_download: falha ao baixar ...</code>) tambem ganha
+contexto: o 404 do CDN do TSE quase sempre significa que o conjunto
+nao existe para aquele ano, e nao um problema de rede.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

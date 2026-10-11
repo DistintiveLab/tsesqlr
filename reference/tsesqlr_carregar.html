@@ -11,7 +11,7 @@ cargas subsequentes fazem DELETE do escopo (ano+UF) e INSERT limpo."></head><bod
 
     <a class="navbar-brand me-2" href="../index.html">tsesqlr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9010</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9011</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,7 +63,8 @@ cargas subsequentes fazem DELETE do escopo (ano+UF) e INSERT limpo.</p>
 
 
 <dt id="arg-ano">ano<a class="anchor" aria-label="anchor" href="#arg-ano"></a></dt>
-<dd><p>Ano eleitoral (1996..2026).</p></dd>
+<dd><p>Ano eleitoral. Para <code>"resultados"</code>, apenas 1998..2024
+(pares) e 2026+; os demais valores abortam antes do download.</p></dd>
 
 
 <dt id="arg-uf">uf<a class="anchor" aria-label="anchor" href="#arg-uf"></a></dt>
@@ -95,6 +96,15 @@ seção a <strong>município x turno x cargo x votável</strong>, uma UF por vez
 de sessões do R mortas em <code>uf = "all"</code>); 2026+ usa o boletim de
 urna WEB (bweb) do CKAN com a mesma granularidade. A tabela
 <code>resultados</code> tem votos por município/candidato/cargo/turno.</p>
+<p><code>resultados</code> só existe onde o TSE publica votação por seção: anos
+pares de eleição geral de 1998 a 2024 (<code>votacao_secao_&lt;ano&gt;_&lt;UF&gt;.zip</code>)
+e 2026 em diante (boletim de urna WEB). Anos ímpares, anteriores a
+1998 ou fora do calendário eleitoral abortam na hora, antes de
+qualquer download, com a lista de anos válidos (<code><a href="dot-verificar_ano_resultados.html">.verificar_ano_resultados()</a></code>).
+Em 1994 e 1996 o TSE só tem votação agregada por município/zona
+(<code>votacao_candidato_munzona</code>), sem detalhe por seção, que o tsesqlr
+ainda não lê; para esses anos use <code>tipo = "candidatos"</code>, disponível
+desde 1994.</p>
 <p>Cada carga precisa de espaço em <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code>, onde o tsebr extrai o ZIP
 baixado antes de ler. O bweb de SP extrai 7,75 GiB, então <code>uf = "ALL"</code>
 em 2026 exige vários GB. Isso é limitado pela cota de disco do usuário

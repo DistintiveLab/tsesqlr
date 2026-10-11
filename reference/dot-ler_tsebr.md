@@ -32,3 +32,7 @@ erro.
 Todo leitor do tsebr passa por `tse_read()`, entao envolver a chamada de
 leitura uma vez cobre boletins, votacao_secao, candidaturas, perfis e
 locais.
+
+O erro de download (`tse_download: falha ao baixar ...`) tambem ganha
+contexto: o 404 do CDN do TSE quase sempre significa que o conjunto nao
+existe para aquele ano, e nao um problema de rede.

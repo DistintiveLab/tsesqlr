@@ -35,6 +35,9 @@ seletores do pkgdown ignoram tópicos internos por padrão.
 - [`.agregar_boletins()`](https://distintivelab.github.io/tsesqlr/reference/dot-agregar_boletins.md)
   : Agrega o boletim de urna WEB por municipio/cargo/votavel
 
+- [`.anos_resultados_secao`](https://distintivelab.github.io/tsesqlr/reference/dot-anos_resultados_secao.md)
+  : Anos com votacao por secao publicada pelo TSE
+
 - [`.carregar_um()`](https://distintivelab.github.io/tsesqlr/reference/dot-carregar_um.md)
   :
 
@@ -68,6 +71,11 @@ seletores do pkgdown ignoram tópicos internos por padrão.
 
 - [`.ufs_br`](https://distintivelab.github.io/tsesqlr/reference/dot-ufs_br.md)
   : Siglas das 27 UFs (sem ZZ)
+
+- [`.verificar_ano_resultados()`](https://distintivelab.github.io/tsesqlr/reference/dot-verificar_ano_resultados.md)
+  :
+
+  Valida o ano pedido para a tabela `resultados`
 
 ## Pacote
 
