@@ -509,8 +509,12 @@ tsesqlr_candidatos <- \(ano, uf, cargo = NULL, con = NULL) {
   if (.nossa) con <- tsesqlr_con()
   on.exit(if (.nossa) DBI::dbDisconnect(con), add = TRUE)
   puxar <- \(a) {
-    sql <- "SELECT * FROM candidatos WHERE ano = $1 AND uf = $2"
-    params <- list(as.integer(a), toupper(uf))
+    sql <- "SELECT * FROM candidatos WHERE ano = $1"
+    params <- list(as.integer(a))
+    if (!identical(toupper(uf), "ALL")) {
+      sql <- paste(sql, "AND uf = $2")
+      params[[2]] <- toupper(uf)
+    }
     if (!is.null(cargo)) { sql <- paste(sql, "AND cargo ~* $3"); params[[3]] <- cargo }
     DBI::dbGetQuery(con, sql, params = params)
   }
