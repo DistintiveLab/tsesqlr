@@ -9,7 +9,7 @@ banco (rápido) ou cair no download via tsebr.
 
 ``` r
 tsesqlr_disponivel(
-  tipo = c("resultados", "candidatos", "perfil", "locais"),
+  tipo = c("resultados", "candidatos", "perfil", "locais", "detalhe"),
   ano,
   uf,
   con = NULL
@@ -46,6 +46,7 @@ Other tsesqlr:
 [`tsesqlr_candidatos()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_candidatos.md),
 [`tsesqlr_carregar()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_carregar.md),
 [`tsesqlr_con()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_con.md),
+[`tsesqlr_detalhe_municipio()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_detalhe_municipio.md),
 [`tsesqlr_init()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_init.md),
 [`tsesqlr_resultados()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_resultados.md),
 [`tsesqlr_resultados_municipio()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_resultados_municipio.md)

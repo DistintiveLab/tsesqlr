@@ -83,6 +83,8 @@ Consultas rápidas no banco pré-carregado, sem download.
   : Consulta rápida: candidaturas
 - [`tsesqlr_disponivel()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_disponivel.md)
   : Escopo está carregado no banco? (decisão tsesqlr x tsebr no painel)
+- [`tsesqlr_detalhe_municipio()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_detalhe_municipio.md)
+  : Consulta rápida: detalhe por município (abstenções, aptos, ...)
 
 ## Detalhes internos
 
@@ -140,6 +142,9 @@ seletores do pkgdown ignoram tópicos internos por padrão.
   :
 
   Valida o ano pedido para a tabela `resultados`
+
+- [`.verificar_uf_dados()`](https://distintivelab.github.io/tsesqlr/reference/dot-verificar_uf_dados.md)
+  : Confere que os dados lidos pertencem ao escopo de UF pedido
 
 ## Pacote
 

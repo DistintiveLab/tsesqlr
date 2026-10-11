@@ -10,4 +10,4 @@ Tipos canonicos das colunas (evita NA logico virar BOOLEAN no banco)
 
 ## Format
 
-An object of class `character` of length 29.
+An object of class `character` of length 31.

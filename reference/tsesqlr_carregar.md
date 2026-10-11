@@ -8,7 +8,7 @@ subsequentes fazem DELETE do escopo (ano+UF) e INSERT limpo.
 
 ``` r
 tsesqlr_carregar(
-  tipo = c("candidatos", "resultados", "perfil", "locais"),
+  tipo = c("candidatos", "resultados", "perfil", "locais", "detalhe"),
   ano,
   uf = "all",
   con = NULL,
@@ -88,6 +88,7 @@ gravadas são puladas na chamada seguinte.
 Other tsesqlr:
 [`tsesqlr_candidatos()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_candidatos.md),
 [`tsesqlr_con()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_con.md),
+[`tsesqlr_detalhe_municipio()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_detalhe_municipio.md),
 [`tsesqlr_disponivel()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_disponivel.md),
 [`tsesqlr_init()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_init.md),
 [`tsesqlr_resultados()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_resultados.md),
