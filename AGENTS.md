@@ -176,6 +176,16 @@ invariant.
   passes `NULL` (no UF filter) — passing a per-UF filter after reading would
   empty the load.
 - **UF validation** rejects anything outside `.ufs_br` (27 UFs, no `ZZ`).
+- **`resultados` has a `(ano, uf)` index; both creation paths maintain it.**
+  Measured on the real DB (4.6M rows, 645 MB, previously zero indexes): every
+  query seq-scanned the table — 623ms for `ano+uf` on SP, 227ms for a small UF.
+  `idx_resultados_ano_uf` (31 MB) drops those to 80ms and 0.3ms; a covering
+  index for the GROUP BY (242 MB) lost to the parallel plan with the plain
+  index, so it was rejected. `.criar_indices()` runs in `.carregar_um()` right
+  after the table is created and in `tsesqlr_init()` for tables that predate it
+  (the upgrade path — re-running `tsesqlr_init()` is how an old DB gets the
+  index). The other data tables are too small to bother. Definitions live in
+  `.indices_tabelas`; add entries there when a query pattern needs one.
 - **`nr_votavel` is stored as text** in queries; coerced with `as.character()`
   when filtering.
 

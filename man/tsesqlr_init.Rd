@@ -13,10 +13,12 @@ tsesqlr_init(con = NULL)
 \code{invisible(TRUE)} se bem-sucedido.
 }
 \description{
-Cria a tabela \code{cargas} (controle de idempotência). As tabelas de
-dados são criadas dinamicamente no primeiro \code{\link[=tsesqlr_carregar]{tsesqlr_carregar()}}
-com as colunas do data.frame do tsebr. Idempotente — pode ser
-chamado quantas vezes necessário.
+Cria a tabela \code{cargas} (controle de idempotência) e os índices
+das tabelas de dados que já existirem (\link{.indices_tabelas}) —
+caminho de upgrade para bancos carregados antes de haver
+índices. As tabelas de dados em si são criadas dinamicamente no
+primeiro \code{\link[=tsesqlr_carregar]{tsesqlr_carregar()}} com as colunas do data.frame do
+tsebr. Idempotente — pode ser chamado quantas vezes necessário.
 }
 \examples{
 \dontrun{

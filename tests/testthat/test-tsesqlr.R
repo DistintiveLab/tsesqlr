@@ -89,6 +89,15 @@ test_that("extracao truncada de ZIP vira erro em vez de carga parcial", {
     "extracao incompleta do ZIP em resultados 2026 SP")
 })
 
+test_that("indices so sao definidos para tabelas do esquema canonico", {
+  idx <- tsesqlr:::.indices_tabelas
+  expect_true(all(names(idx) %in% names(tsesqlr:::.padrao_colunas)))
+  for (tabela in names(idx)) {
+    expect_match(idx[[tabela]], "CREATE INDEX IF NOT EXISTS")
+    expect_match(idx[[tabela]], paste0("ON ", tabela, " "))
+  }
+})
+
 test_that("ler_tsebr deixa passar avisos que nao sao do ZIP", {
   # Um "single-line footer" benigno do fread nao pode derrubar a carga.
   expect_warning(

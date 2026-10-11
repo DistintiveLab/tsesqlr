@@ -67,10 +67,12 @@ tsesqlr_con <- \(dbname = Sys.getenv("tsedbname", "tsedb")) {
 
 #' Inicializa o schema do tsedb
 #'
-#' Cria a tabela `cargas` (controle de idempotência). As tabelas de
-#' dados são criadas dinamicamente no primeiro [tsesqlr_carregar()]
-#' com as colunas do data.frame do tsebr. Idempotente — pode ser
-#' chamado quantas vezes necessário.
+#' Cria a tabela `cargas` (controle de idempotência) e os índices
+#' das tabelas de dados que já existirem ([.indices_tabelas]) —
+#' caminho de upgrade para bancos carregados antes de haver
+#' índices. As tabelas de dados em si são criadas dinamicamente no
+#' primeiro [tsesqlr_carregar()] com as colunas do data.frame do
+#' tsebr. Idempotente — pode ser chamado quantas vezes necessário.
 #'
 #' @param con Conexao DBI; default abre via [tsesqlr_con()].
 #' @return `invisible(TRUE)` se bem-sucedido.
@@ -89,6 +91,7 @@ tsesqlr_init <- \(con = NULL) {
     "tabela TEXT NOT NULL, ano INTEGER NOT NULL, uf TEXT NOT NULL,",
     "carregado_em TIMESTAMP DEFAULT NOW(), n_linhas BIGINT,",
     "PRIMARY KEY (tabela, ano, uf))"))
+  for (tabela in names(.indices_tabelas)) .criar_indices(con, tabela)
   invisible(TRUE)
 }
 
@@ -97,6 +100,33 @@ tsesqlr_init <- \(con = NULL) {
 .ufs_br <- c("AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO",
              "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR",
              "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO")
+
+#' Indices das tabelas de dados
+#'
+#' `resultados` cresce a centenas de MB por ano e toda consulta do
+#' pacote filtra `ano` (+`uf`): sem indice cada uma varre a tabela
+#' inteira. Medido contra o banco real (4,6M linhas, 645 MB):
+#' `ano+uf` em SP cai de 623 ms para 80 ms, e em UF pequena de
+#' 227 ms para 0,3 ms. Um indice de cobertura para o GROUP BY
+#' custaria 242 MB e perdia do plano paralelo com o indice simples
+#' de 31 MB. As demais tabelas sao pequenas demais para valer um
+#' indice proprio.
+#' @keywords internal
+.indices_tabelas <- list(
+  resultados = "CREATE INDEX IF NOT EXISTS idx_resultados_ano_uf ON resultados (ano, uf)")
+
+#' Cria os indices de uma tabela de dados, se ela existir
+#'
+#' Chamado por [tsesqlr_init()] (bancos antigos, atualizacao por
+#' upgrade) e por `.carregar_um()` logo apos criar a tabela. O
+#' `IF NOT EXISTS` mantem tudo idempotente.
+#' @keywords internal
+.criar_indices <- \(con, tabela) {
+  sql <- .indices_tabelas[[tabela]]
+  if (is.null(sql) || !DBI::dbExistsTable(con, tabela)) return(invisible(FALSE))
+  DBI::dbExecute(con, sql)
+  invisible(TRUE)
+}
 
 #' Anos com votacao por secao publicada pelo TSE
 #'
@@ -439,6 +469,7 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
     DBI::dbWriteTable(con, tabela, as.data.frame(dados), append = TRUE)
   } else {
     DBI::dbWriteTable(con, tabela, as.data.frame(dados), append = FALSE)
+    .criar_indices(con, tabela)
   }
   ## carga ALL cobre as UFs individuais: registros per-UF do mesmo
   ## ano ficam obsoletos
