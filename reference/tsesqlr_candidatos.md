@@ -13,7 +13,7 @@ tsesqlr_candidatos(ano, uf, cargo = NULL, con = NULL)
 
 - ano:
 
-  Ano eleitoral.
+  Ano eleitoral ou vetor de anos.
 
 - uf:
 
@@ -39,14 +39,16 @@ tsesqlr_candidatos(ano, uf, cargo = NULL, con = NULL)
 Other tsesqlr:
 [`tsesqlr_carregar()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_carregar.md),
 [`tsesqlr_con()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_con.md),
+[`tsesqlr_disponivel()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_disponivel.md),
 [`tsesqlr_init()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_init.md),
-[`tsesqlr_resultados()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_resultados.md)
+[`tsesqlr_resultados()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_resultados.md),
+[`tsesqlr_resultados_municipio()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_resultados_municipio.md)
 
 ## Examples
 
 ``` r
 if (FALSE) { # \dontrun{
 tsesqlr_candidatos(2026, "DF", cargo = "GOVERNADOR")
-tsesqlr_candidatos(2022, "SP")
+tsesqlr_candidatos(c(2022, 2026), "SP")
 } # }
 ```

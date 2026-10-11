@@ -23,8 +23,12 @@ Consultas rápidas no banco pré-carregado, sem download.
 
 - [`tsesqlr_resultados()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_resultados.md)
   : Consulta rápida: resultados por município
+- [`tsesqlr_resultados_municipio()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_resultados_municipio.md)
+  : Consulta rápida: votos por município IBGE (contrato do DW beep)
 - [`tsesqlr_candidatos()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_candidatos.md)
   : Consulta rápida: candidaturas
+- [`tsesqlr_disponivel()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_disponivel.md)
+  : Escopo está carregado no banco? (decisão tsesqlr x tsebr no painel)
 
 ## Detalhes internos
 

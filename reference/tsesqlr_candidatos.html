@@ -9,7 +9,7 @@ candidato em um pleito (chave: SQ_CANDIDATO)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">tsesqlr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9011</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9013</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +49,7 @@ candidato em um pleito (chave: SQ_CANDIDATO).</p>
 
 
 <dl><dt id="arg-ano">ano<a class="anchor" aria-label="anchor" href="#arg-ano"></a></dt>
-<dd><p>Ano eleitoral.</p></dd>
+<dd><p>Ano eleitoral ou vetor de anos.</p></dd>
 
 
 <dt id="arg-uf">uf<a class="anchor" aria-label="anchor" href="#arg-uf"></a></dt>
@@ -74,15 +74,17 @@ candidato em um pleito (chave: SQ_CANDIDATO).</p>
 <p>Other tsesqlr:
 <code><a href="tsesqlr_carregar.html">tsesqlr_carregar()</a></code>,
 <code><a href="tsesqlr_con.html">tsesqlr_con()</a></code>,
+<code><a href="tsesqlr_disponivel.html">tsesqlr_disponivel()</a></code>,
 <code><a href="tsesqlr_init.html">tsesqlr_init()</a></code>,
-<code><a href="tsesqlr_resultados.html">tsesqlr_resultados()</a></code></p></div>
+<code><a href="tsesqlr_resultados.html">tsesqlr_resultados()</a></code>,
+<code><a href="tsesqlr_resultados_municipio.html">tsesqlr_resultados_municipio()</a></code></p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="fu">tsesqlr_candidatos</span><span class="op">(</span><span class="fl">2026</span>, <span class="st">"DF"</span>, cargo <span class="op">=</span> <span class="st">"GOVERNADOR"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">tsesqlr_candidatos</span><span class="op">(</span><span class="fl">2022</span>, <span class="st">"SP"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">tsesqlr_candidatos</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2022</span>, <span class="fl">2026</span><span class="op">)</span>, <span class="st">"SP"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
