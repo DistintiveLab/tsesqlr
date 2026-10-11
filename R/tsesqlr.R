@@ -171,7 +171,9 @@ tsesqlr_init <- \(con = NULL) {
                         "eleitores_biometria"),
   locais_votacao = c("ano", "uf", "cod_municipio_tse", "municipio", "zona",
                      "secao", "local_votacao", "endereco", "bairro", "lat",
-                     "lon", "eleitores_secao"))
+                     "lon", "eleitores_secao"),
+  detalhe = c("ano", "periodo", "uf", "cod_municipio_tse", "metrica",
+              "valor"))
 
 #' Tipos canonicos das colunas (evita NA logico virar BOOLEAN no banco)
 #' @keywords internal
@@ -186,7 +188,8 @@ tsesqlr_init <- \(con = NULL) {
   escolaridade = "character", genero = "character", eleitores = "integer",
   eleitores_biometria = "integer", local_votacao = "character",
   endereco = "character", bairro = "character", lat = "numeric",
-  lon = "numeric", eleitores_secao = "integer")
+  lon = "numeric", eleitores_secao = "integer", metrica = "character",
+  valor = "numeric")
 
 #' Completa/ordena colunas do data.frame no esquema canonico
 #'
@@ -330,7 +333,8 @@ tsesqlr_init <- \(con = NULL) {
 #' }
 #' @family tsesqlr
 #' @export
-tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
+tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais",
+                              "detalhe"),
                       ano, uf = "all", con = NULL, refrescar = FALSE) {
   tipo <- match.arg(tipo)
   ano <- as.integer(ano)
@@ -405,6 +409,7 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
 .carregar_um <- \(tipo, ano, uf, con, refrescar) {
   tabela <- switch(tipo,
                    candidatos = "candidatos", resultados = "resultados",
+                   detalhe = "detalhe",
                    perfil = "perfil_eleitorado", locais = "locais_votacao")
   ja <- DBI::dbGetQuery(con, paste(
     "SELECT n_linhas FROM cargas WHERE tabela = $1 AND ano = $2 AND uf = $3"),
@@ -424,6 +429,9 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais"),
       candidatos = tsebr::tse_candidaturas(ano, uf = uf_dados),
       resultados = if (ano >= 2026) .agregar_boletins(ano, uf_dados) else
         tsebr::tse_votacao_municipio(ano, uf = uf_dados),
+      detalhe = tsebr::tse_detalhe_municipio(ano, uf_dados,
+        metrica = c("aptos", "comparecimento", "abstencoes", "votos_nulos",
+                    "votos_brancos"), mapa = FALSE),
       perfil = tsebr::tse_perfis_secao(ano, uf = uf_dados),
       locais = tsebr::tse_locais_votacao(ano, uf = uf_dados)),
     escopo = paste(tipo, ano, uf))
@@ -652,7 +660,8 @@ tsesqlr_resultados_municipio <- \(ano, uf, cargo = NULL, nr_votavel = NULL,
 #' }
 #' @family tsesqlr
 #' @export
-tsesqlr_disponivel <- \(tipo = c("resultados", "candidatos", "perfil", "locais"),
+tsesqlr_disponivel <- \(tipo = c("resultados", "candidatos", "perfil",
+                              "locais", "detalhe"),
                         ano, uf, con = NULL) {
   tipo <- match.arg(tipo)
   tryCatch({
@@ -670,3 +679,77 @@ tsesqlr_disponivel <- \(tipo = c("resultados", "candidatos", "perfil", "locais")
     setequal(as.integer(tem$ano), anos_pedidos)
   }, error = \(e) FALSE)
 }
+
+#' Consulta rápida: detalhe por município (abstenções, aptos, ...)
+#'
+#' Busca as métricas do detalhe (aptos, comparecimento, abstencoes,
+#' votos_nulos, votos_brancos) na tabela `detalhe` pré-carregada e
+#' devolve no formato longo do DW (`local`, `periodo`, `valor`, `uf`,
+#' `metrica`) — instantâneo depois de [tsesqlr_carregar()]. Com `mapa`
+#' (saída de `tsebr::tse_mapa_municipios()`), `local` sai como código
+#' IBGE de 7 dígitos; sem mapa, como código TSE.
+#'
+#' @param ano Ano eleitoral ou vetor de anos.
+#' @param uf Sigla da UF.
+#' @param metrica Uma das métricas do detalhe.
+#' @param mapa `data.frame` com cod_municipio_tse e ibge (ou
+#'   geoloc_id, como em `tsebr::tse_mapa_municipios()`).
+#' @param con Conexao DBI; default abre via [tsesqlr_con()].
+#' @return `data.frame` long: local, periodo, valor, uf, metrica.
+#' @examples
+#' \dontrun{
+#' tsesqlr_detalhe_municipio(2022, "DF", "abstencoes",
+#'   mapa = tsebr::tse_mapa_municipios(2022, "DF"))
+#' }
+#' @family tsesqlr
+#' @seealso [tsesqlr_resultados_municipio()]
+#' @export
+tsesqlr_detalhe_municipio <- \(ano, uf, metrica, mapa = NULL, con = NULL) {
+  metrica <- match.arg(metrica, choices = c(
+    "aptos", "comparecimento", "abstencoes", "votos_nulos",
+    "votos_brancos"))
+  .nossa <- is.null(con)
+  if (.nossa) con <- tsesqlr_con()
+  on.exit(if (.nossa) DBI::dbDisconnect(con), add = TRUE)
+  uf <- toupper(uf[1])
+  puxar <- \(a) {
+    sql <- paste("SELECT cod_municipio_tse, metrica, SUM(valor) AS valor",
+                 "FROM detalhe WHERE ano = $1 AND metrica = $2")
+    params <- list(as.integer(a), metrica)
+    if (!identical(uf, "ALL")) {
+      sql <- paste(sql, "AND uf = $3")
+      params[[3]] <- uf
+    }
+    d <- DBI::dbGetQuery(con, paste(sql, "GROUP BY 1, 2"), params = params)
+    d$ano <- as.integer(a)
+    d
+  }
+  dados <- do.call(rbind, lapply(sort(unique(as.integer(ano))), puxar))
+  if (is.null(mapa)) {
+    saida <- dados |>
+      dplyr::mutate(local = as.numeric(cod_municipio_tse))
+  } else {
+    if (!"ibge" %in% names(mapa) && "geoloc_id" %in% names(mapa)) {
+      mapa$ibge <- as.numeric(mapa$geoloc_id)
+    }
+    if ("empate" %in% names(mapa)) {
+      mapa <- mapa[is.na(mapa$empate) | !mapa$empate, , drop = FALSE]
+    }
+    mapa <- dplyr::mutate(mapa,
+                          cod_municipio_tse = as.character(cod_municipio_tse),
+                          ibge = as.numeric(ibge))
+    saida <- dados |>
+      dplyr::mutate(cod_municipio_tse = as.character(cod_municipio_tse)) |>
+      dplyr::left_join(mapa[, c("cod_municipio_tse", "ibge")],
+                       by = "cod_municipio_tse") |>
+      dplyr::filter(!is.na(ibge)) |>
+      dplyr::mutate(local = ibge)
+  }
+  saida |>
+    dplyr::group_by(local, ano, metrica) |>
+    dplyr::summarise(valor = sum(as.numeric(valor), na.rm = TRUE),
+                     .groups = "drop") |>
+    dplyr::mutate(periodo = as.Date(paste0(ano, "-12-31")), uf = uf) |>
+    dplyr::select(local, periodo, valor, uf, metrica)
+}
+

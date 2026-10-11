@@ -34,6 +34,7 @@ tsesqlr_candidatos(c(2022, 2026), "SP")
 Other tsesqlr: 
 \code{\link{tsesqlr_carregar}()},
 \code{\link{tsesqlr_con}()},
+\code{\link{tsesqlr_detalhe_municipio}()},
 \code{\link{tsesqlr_disponivel}()},
 \code{\link{tsesqlr_init}()},
 \code{\link{tsesqlr_resultados}()},

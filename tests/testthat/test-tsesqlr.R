@@ -24,7 +24,8 @@ test_that("ano existente nao e sobrescrito pelo argumento", {
 test_that("todas as tabelas tem esquema canonico definido", {
   expect_setequal(
     names(tsesqlr:::.padrao_colunas),
-    c("resultados", "candidatos", "perfil_eleitorado", "locais_votacao"))
+    c("resultados", "candidatos", "perfil_eleitorado", "locais_votacao",
+      "detalhe"))
   for (cols in tsesqlr:::.padrao_colunas) {
     expect_true(all(c("ano", "uf") %in% cols))
     expect_false(any(duplicated(cols)))

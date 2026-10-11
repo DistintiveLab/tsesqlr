@@ -5,7 +5,7 @@
 \title{Escopo está carregado no banco? (decisão tsesqlr x tsebr no painel)}
 \usage{
 tsesqlr_disponivel(
-  tipo = c("resultados", "candidatos", "perfil", "locais"),
+  tipo = c("resultados", "candidatos", "perfil", "locais", "detalhe"),
   ano,
   uf,
   con = NULL
@@ -41,6 +41,7 @@ Other tsesqlr:
 \code{\link{tsesqlr_candidatos}()},
 \code{\link{tsesqlr_carregar}()},
 \code{\link{tsesqlr_con}()},
+\code{\link{tsesqlr_detalhe_municipio}()},
 \code{\link{tsesqlr_init}()},
 \code{\link{tsesqlr_resultados}()},
 \code{\link{tsesqlr_resultados_municipio}()}

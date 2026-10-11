@@ -30,6 +30,7 @@ Other tsesqlr:
 \code{\link{tsesqlr_candidatos}()},
 \code{\link{tsesqlr_carregar}()},
 \code{\link{tsesqlr_con}()},
+\code{\link{tsesqlr_detalhe_municipio}()},
 \code{\link{tsesqlr_disponivel}()},
 \code{\link{tsesqlr_resultados}()},
 \code{\link{tsesqlr_resultados_municipio}()}

@@ -32,6 +32,7 @@ DBI::dbDisconnect(con)
 Other tsesqlr: 
 \code{\link{tsesqlr_candidatos}()},
 \code{\link{tsesqlr_carregar}()},
+\code{\link{tsesqlr_detalhe_municipio}()},
 \code{\link{tsesqlr_disponivel}()},
 \code{\link{tsesqlr_init}()},
 \code{\link{tsesqlr_resultados}()},

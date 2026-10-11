@@ -5,7 +5,7 @@
 \alias{.tipos_colunas}
 \title{Tipos canonicos das colunas (evita NA logico virar BOOLEAN no banco)}
 \format{
-An object of class \code{character} of length 29.
+An object of class \code{character} of length 31.
 }
 \usage{
 .tipos_colunas
