@@ -4,10 +4,11 @@
 \alias{tsesqlr_con}
 \title{Conexão ao banco tsedb}
 \usage{
-tsesqlr_con(dbname = "tsedb")
+tsesqlr_con(dbname = Sys.getenv("tsedbname", "tsedb"))
 }
 \arguments{
-\item{dbname}{Nome do banco; default "tsedb" (via env var \code{dbname}).}
+\item{dbname}{Nome do banco; default resolve \code{tsedbname}
+(fallback "tsedb").}
 }
 \value{
 Objeto de conexão DBI (RPostgres).
@@ -15,7 +16,10 @@ Objeto de conexão DBI (RPostgres).
 \description{
 Abre conexão ao PostgreSQL dedicado aos dados eleitorais. As
 credenciais vêm das variáveis de ambiente (\code{.Renviron}):
-\code{user}, \code{password}, \code{host}, \code{dbname}.
+\code{user}, \code{password}, \code{host} (mesmo servidor do DW
+beep) e \code{tsedbname} para o NOME deste banco (default
+\code{"tsedb"}) — variável própria para não conflitar com o
+\code{dbname} do DW na mesma sessão.
 }
 \examples{
 \dontrun{
@@ -28,7 +32,9 @@ DBI::dbDisconnect(con)
 Other tsesqlr: 
 \code{\link{tsesqlr_candidatos}()},
 \code{\link{tsesqlr_carregar}()},
+\code{\link{tsesqlr_disponivel}()},
 \code{\link{tsesqlr_init}()},
-\code{\link{tsesqlr_resultados}()}
+\code{\link{tsesqlr_resultados}()},
+\code{\link{tsesqlr_resultados_municipio}()}
 }
 \concept{tsesqlr}

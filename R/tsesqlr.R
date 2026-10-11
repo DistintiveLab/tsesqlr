@@ -40,9 +40,13 @@
 #'
 #' Abre conexão ao PostgreSQL dedicado aos dados eleitorais. As
 #' credenciais vêm das variáveis de ambiente (`.Renviron`):
-#' \code{user}, \code{password}, \code{host}, \code{dbname}.
+#' \code{user}, \code{password}, \code{host} (mesmo servidor do DW
+#' beep) e \code{tsedbname} para o NOME deste banco (default
+#' \code{"tsedb"}) — variável própria para não conflitar com o
+#' \code{dbname} do DW na mesma sessão.
 #'
-#' @param dbname Nome do banco; default "tsedb" (via env var \code{dbname}).
+#' @param dbname Nome do banco; default resolve \code{tsedbname}
+#'   (fallback "tsedb").
 #' @return Objeto de conexão DBI (RPostgres).
 #' @examples
 #' \dontrun{
@@ -52,13 +56,13 @@
 #' }
 #' @family tsesqlr
 #' @export
-tsesqlr_con <- \(dbname = "tsedb") {
+tsesqlr_con <- \(dbname = Sys.getenv("tsedbname", "tsedb")) {
   DBI::dbConnect(
     RPostgres::Postgres(),
     user = Sys.getenv("user", "beep"),
     password = Sys.getenv("password", "aEd1#man@gR"),
     host = Sys.getenv("host", "127.0.0.1"),
-    dbname = Sys.getenv("dbname", dbname))
+    dbname = dbname)
 }
 
 #' Inicializa o schema do tsedb
@@ -487,7 +491,7 @@ tsesqlr_resultados <- \(ano, uf, cargo = NULL, nr_votavel = NULL, con = NULL) {
 #' Busca candidaturas no banco pré-carregado. Cada linha é um
 #' candidato em um pleito (chave: SQ_CANDIDATO).
 #'
-#' @param ano Ano eleitoral.
+#' @param ano Ano eleitoral ou vetor de anos.
 #' @param uf Sigla da UF.
 #' @param cargo Regex de cargo (case-insensitive). Default: todos.
 #' @param con Conexao DBI; default abre via [tsesqlr_con()].
@@ -495,7 +499,7 @@ tsesqlr_resultados <- \(ano, uf, cargo = NULL, nr_votavel = NULL, con = NULL) {
 #' @examples
 #' \dontrun{
 #' tsesqlr_candidatos(2026, "DF", cargo = "GOVERNADOR")
-#' tsesqlr_candidatos(2022, "SP")
+#' tsesqlr_candidatos(c(2022, 2026), "SP")
 #' }
 #' @family tsesqlr
 #' @seealso [tsesqlr_resultados()]
@@ -504,8 +508,130 @@ tsesqlr_candidatos <- \(ano, uf, cargo = NULL, con = NULL) {
   .nossa <- is.null(con)
   if (.nossa) con <- tsesqlr_con()
   on.exit(if (.nossa) DBI::dbDisconnect(con), add = TRUE)
-  sql <- "SELECT * FROM candidatos WHERE ano = $1 AND uf = $2"
-  params <- list(as.integer(ano), toupper(uf))
-  if (!is.null(cargo)) { sql <- paste(sql, "AND cargo ~* $3"); params[[3]] <- cargo }
-  DBI::dbGetQuery(con, sql, params = params)
+  puxar <- \(a) {
+    sql <- "SELECT * FROM candidatos WHERE ano = $1 AND uf = $2"
+    params <- list(as.integer(a), toupper(uf))
+    if (!is.null(cargo)) { sql <- paste(sql, "AND cargo ~* $3"); params[[3]] <- cargo }
+    DBI::dbGetQuery(con, sql, params = params)
+  }
+  do.call(rbind, lapply(sort(unique(as.integer(ano))), puxar))
+}
+
+#' Consulta rápida: votos por município IBGE (contrato do DW beep)
+#'
+#' Soma os votos da tabela `resultados` por município e devolve no
+#' formato longo do DW (`local`, `periodo`, `valor`, `uf`) — mesmo
+#' contrato de `tsebr::tse_resultados_municipio()`, sem baixar
+#' nada: o dado já está no banco pré-carregado. Com `mapa` (saída
+#' de `tsebr::tse_mapa_municipios()` ou `tse_municipios()`), `local`
+#' sai como código IBGE de 7 dígitos; sem mapa, como código TSE.
+#'
+#' @param ano Ano eleitoral ou vetor de anos.
+#' @param uf Sigla da UF.
+#' @param cargo Regex de cargo (case-insensitive). Default: todos.
+#' @param nr_votavel Número do candidato/partido. Default: todos.
+#' @param mapa `data.frame` com cod_municipio_tse e ibge (ou
+#'   geoloc_id, como em `tsebr::tse_mapa_municipios()`).
+#' @param con Conexao DBI; default abre via [tsesqlr_con()].
+#' @return `data.frame` long: local, periodo, valor, uf.
+#' @examples
+#' \dontrun{
+#' tsesqlr_resultados_municipio(2022, "DF", cargo = "PRESIDENTE",
+#'   nr_votavel = 13, mapa = tsebr::tse_mapa_municipios(2022, "DF"))
+#' }
+#' @family tsesqlr
+#' @seealso [tsesqlr_resultados()] para os detalhes por cargo/turno.
+#' @export
+tsesqlr_resultados_municipio <- \(ano, uf, cargo = NULL, nr_votavel = NULL,
+                                  mapa = NULL, con = NULL) {
+  .nossa <- is.null(con)
+  if (.nossa) con <- tsesqlr_con()
+  on.exit(if (.nossa) DBI::dbDisconnect(con), add = TRUE)
+  uf <- toupper(uf[1])
+  puxar <- \(a) {
+    sql <- paste("SELECT cod_municipio_tse, municipio,",
+                 "SUM(votos) AS votos FROM resultados WHERE ano = $1")
+    params <- list(as.integer(a))
+    if (!identical(uf, "ALL")) {
+      sql <- paste(sql, "AND uf = $2")
+      params[[2]] <- uf
+    }
+    if (!is.null(cargo)) {
+      sql <- paste(sql, "AND cargo ~* $3")
+      params[[3]] <- cargo
+    }
+    if (!is.null(nr_votavel)) {
+      sql <- paste(sql, "AND nr_votavel = $4")
+      params[[4]] <- as.character(nr_votavel)
+    }
+    d <- DBI::dbGetQuery(con, paste(sql, "GROUP BY 1, 2"), params = params)
+    d$ano <- as.integer(a)
+    d
+  }
+  dados <- do.call(rbind, lapply(sort(unique(as.integer(ano))), puxar))
+  if (is.null(mapa)) {
+    saida <- dados |>
+      dplyr::mutate(local = as.numeric(cod_municipio_tse))
+  } else {
+    if (!"ibge" %in% names(mapa) && "geoloc_id" %in% names(mapa)) {
+      mapa$ibge <- as.numeric(mapa$geoloc_id)
+    }
+    if ("empate" %in% names(mapa)) {
+      mapa <- mapa[is.na(mapa$empate) | !mapa$empate, , drop = FALSE]
+    }
+    mapa <- dplyr::mutate(mapa,
+                          cod_municipio_tse = as.character(cod_municipio_tse),
+                          ibge = as.numeric(ibge))
+    saida <- dados |>
+      dplyr::mutate(cod_municipio_tse = as.character(cod_municipio_tse)) |>
+      dplyr::left_join(mapa[, c("cod_municipio_tse", "ibge")],
+                       by = "cod_municipio_tse") |>
+      dplyr::filter(!is.na(ibge)) |>
+      dplyr::mutate(local = ibge)
+  }
+  saida |>
+    dplyr::group_by(local, ano) |>
+    dplyr::summarise(valor = sum(as.numeric(votos), na.rm = TRUE),
+                     .groups = "drop") |>
+    dplyr::mutate(periodo = as.Date(paste0(ano, "-12-31")), uf = uf) |>
+    dplyr::select(local, periodo, valor, uf)
+}
+
+#' Escopo está carregado no banco? (decisão tsesqlr x tsebr no painel)
+#'
+#' Verifica, sem nunca erro, se o banco responde e se TODOS os anos
+#' pedidos do tipo/UF estão em `cargas` (registro `uf = 'ALL'` cobre
+#' qualquer UF). É a peça que o painel beep usa para decidir entre
+#' consultar direto o banco (rápido) ou cair no download via tsebr.
+#'
+#' @param tipo `"resultados"`, `"candidatos"`, `"perfil"` ou
+#'   `"locais"` (valor da coluna `tabela` de `cargas`).
+#' @param ano Ano eleitoral ou vetor — todos precisam estar carregados.
+#' @param uf Sigla da UF.
+#' @param con Conexao DBI; default abre via [tsesqlr_con()].
+#' @return `TRUE`/`FALSE` (qualquer falha de conexão/credencial vira
+#'   `FALSE`).
+#' @examples
+#' \dontrun{
+#' if (tsesqlr_disponivel("resultados", 2022, "DF")) { ... }
+#' }
+#' @family tsesqlr
+#' @export
+tsesqlr_disponivel <- \(tipo = c("resultados", "candidatos", "perfil", "locais"),
+                        ano, uf, con = NULL) {
+  tipo <- match.arg(tipo)
+  tryCatch({
+    .nossa <- is.null(con)
+    if (.nossa) con <- tsesqlr_con()
+    on.exit(if (.nossa) DBI::dbDisconnect(con), add = TRUE)
+    anos_pedidos <- sort(unique(as.integer(ano)))
+    ## RPostgres nao serializa vetor R como array do PG: literal
+    ## "{2022,2026}" + cast explicito
+    anos_txt <- paste0("{", paste(anos_pedidos, collapse = ","), "}")
+    tem <- DBI::dbGetQuery(con, paste(
+      "SELECT DISTINCT ano FROM cargas",
+      "WHERE tabela = $1 AND ano = ANY($2::int[]) AND (uf = $3 OR uf = 'ALL')"),
+      params = list(tipo, anos_txt, toupper(uf[1])))
+    setequal(as.integer(tem$ano), anos_pedidos)
+  }, error = \(e) FALSE)
 }

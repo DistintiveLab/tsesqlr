@@ -3,5 +3,7 @@
 export(tsesqlr_candidatos)
 export(tsesqlr_carregar)
 export(tsesqlr_con)
+export(tsesqlr_disponivel)
 export(tsesqlr_init)
 export(tsesqlr_resultados)
+export(tsesqlr_resultados_municipio)

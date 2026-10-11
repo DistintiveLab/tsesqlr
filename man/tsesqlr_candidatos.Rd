@@ -7,7 +7,7 @@
 tsesqlr_candidatos(ano, uf, cargo = NULL, con = NULL)
 }
 \arguments{
-\item{ano}{Ano eleitoral.}
+\item{ano}{Ano eleitoral ou vetor de anos.}
 
 \item{uf}{Sigla da UF.}
 
@@ -25,7 +25,7 @@ candidato em um pleito (chave: SQ_CANDIDATO).
 \examples{
 \dontrun{
 tsesqlr_candidatos(2026, "DF", cargo = "GOVERNADOR")
-tsesqlr_candidatos(2022, "SP")
+tsesqlr_candidatos(c(2022, 2026), "SP")
 }
 }
 \seealso{
@@ -34,7 +34,9 @@ tsesqlr_candidatos(2022, "SP")
 Other tsesqlr: 
 \code{\link{tsesqlr_carregar}()},
 \code{\link{tsesqlr_con}()},
+\code{\link{tsesqlr_disponivel}()},
 \code{\link{tsesqlr_init}()},
-\code{\link{tsesqlr_resultados}()}
+\code{\link{tsesqlr_resultados}()},
+\code{\link{tsesqlr_resultados_municipio}()}
 }
 \concept{tsesqlr}
