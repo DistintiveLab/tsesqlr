@@ -34,7 +34,10 @@ geoloc_id, como em \code{tsebr::tse_mapa_municipios()}).}
 Soma os votos da tabela \code{resultados} por município e devolve no
 formato longo do DW (\code{local}, \code{periodo}, \code{valor}, \code{uf}) — mesmo
 contrato de \code{tsebr::tse_resultados_municipio()}, sem baixar
-nada: o dado já está no banco pré-carregado. Com \code{mapa} (saída
+nada: o dado já está no banco pré-carregado. Cada turno é um
+\code{periodo} próprio: 1º turno no primeiro domingo de outubro e
+2º no último (2022: 02/10 e 30/10), em vez do ano-fim que
+somava os dois turnos no mesmo ponto. Com \code{mapa} (saída
 de \code{tsebr::tse_mapa_municipios()} ou \code{tse_municipios()}), \code{local}
 sai como código IBGE de 7 dígitos; sem mapa, como código TSE.
 }

@@ -158,6 +158,24 @@ tsesqlr_init <- \(con = NULL) {
        "tsebr::tse_anos_disponiveis().")
 }
 
+#' Data de cada turno da eleição geral (domingos de outubro)
+#'
+#' 1º turno: primeiro domingo de outubro; 2º turno: último domingo
+#' de outubro (regra da Constituição). É o `periodo` gravado na
+#' tabela `resultados` e devolvido no contrato do DW: cada turno é
+#' um ponto de dados próprio (2022: 02/10 e 30/10; 2026: 04/10),
+#' em vez do ano-fim (31/12), que juntava os dois turnos na mesma
+#' data.
+#' @keywords internal
+.periodo_eleicao <- \(ano, turno) {
+  turno <- as.integer(ifelse(is.na(turno), 1L, pmin(turno, 2L)))
+  d1 <- as.Date(paste0(ano, "-10-01"))
+  primeiro <- d1 + (7L - as.integer(format(d1, "%u"))) %% 7L
+  d31 <- as.Date(paste0(ano, "-10-31"))
+  ultimo <- d31 - as.integer(format(d31, "%u")) %% 7L
+  as.Date(ifelse(turno <= 1L, primeiro, ultimo), origin = "1970-01-01")
+}
+
 #' Confere que os dados lidos pertencem ao escopo de UF pedido
 #'
 #' Rede de segurança contra leitura de arquivo errado: se o downloader
@@ -467,6 +485,9 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais",
     if (de %in% names(dados)) names(dados)[names(dados) == de] <- renomear[[de]]
   }
   dados <- .padronizar(dados, .padrao_colunas[[tabela]], ano)
+  if (tipo == "resultados") {
+    dados$periodo <- .periodo_eleicao(dados$ano, dados$turno)
+  }
   .verificar_uf_dados(dados, uf)
   existe <- DBI::dbGetQuery(con, paste(
     "SELECT 1 FROM information_schema.tables WHERE table_name = $1"),
@@ -589,7 +610,10 @@ tsesqlr_candidatos <- \(ano, uf, cargo = NULL, con = NULL) {
 #' Soma os votos da tabela `resultados` por município e devolve no
 #' formato longo do DW (`local`, `periodo`, `valor`, `uf`) — mesmo
 #' contrato de `tsebr::tse_resultados_municipio()`, sem baixar
-#' nada: o dado já está no banco pré-carregado. Com `mapa` (saída
+#' nada: o dado já está no banco pré-carregado. Cada turno é um
+#' `periodo` próprio: 1º turno no primeiro domingo de outubro e
+#' 2º no último (2022: 02/10 e 30/10), em vez do ano-fim que
+#' somava os dois turnos no mesmo ponto. Com `mapa` (saída
 #' de `tsebr::tse_mapa_municipios()` ou `tse_municipios()`), `local`
 #' sai como código IBGE de 7 dígitos; sem mapa, como código TSE.
 #'
@@ -617,7 +641,8 @@ tsesqlr_resultados_municipio <- \(ano, uf, cargo = NULL, nr_votavel = NULL,
   uf <- toupper(uf[1])
   puxar <- \(a) {
     sql <- paste("SELECT cod_municipio_tse, municipio,",
-                 "SUM(votos) AS votos FROM resultados WHERE ano = $1")
+                 "COALESCE(turno, 1) AS turno, SUM(votos) AS votos",
+                 "FROM resultados WHERE ano = $1")
     params <- list(as.integer(a))
     if (!identical(uf, "ALL")) {
       sql <- paste(sql, "AND uf = $2")
@@ -631,8 +656,9 @@ tsesqlr_resultados_municipio <- \(ano, uf, cargo = NULL, nr_votavel = NULL,
       sql <- paste(sql, "AND nr_votavel = $4")
       params[[4]] <- as.character(nr_votavel)
     }
-    d <- DBI::dbGetQuery(con, paste(sql, "GROUP BY 1, 2"), params = params)
+    d <- DBI::dbGetQuery(con, paste(sql, "GROUP BY 1, 2, 3"), params = params)
     d$ano <- as.integer(a)
+    d$periodo <- .periodo_eleicao(d$ano, d$turno)
     d
   }
   dados <- do.call(rbind, lapply(sort(unique(as.integer(ano))), puxar))
@@ -657,10 +683,10 @@ tsesqlr_resultados_municipio <- \(ano, uf, cargo = NULL, nr_votavel = NULL,
       dplyr::mutate(local = ibge)
   }
   saida |>
-    dplyr::group_by(local, ano) |>
+    dplyr::group_by(local, periodo) |>
     dplyr::summarise(valor = sum(as.numeric(votos), na.rm = TRUE),
                      .groups = "drop") |>
-    dplyr::mutate(periodo = as.Date(paste0(ano, "-12-31")), uf = uf) |>
+    dplyr::mutate(uf = uf) |>
     dplyr::select(local, periodo, valor, uf)
 }
 

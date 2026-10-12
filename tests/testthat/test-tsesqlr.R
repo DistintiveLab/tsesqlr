@@ -159,3 +159,12 @@ test_that("verificar_uf_dados aborta arquivo errado antes de gravar", {
   expect_error(tsesqlr:::.verificar_uf_dados(data.frame(uf = NA), "PR"),
                "nada foi gravado")
 })
+
+test_that("periodo_eleicao devolve os domingos de outubro de cada turno", {
+  p <- tsesqlr:::.periodo_eleicao(c(2022L, 2022L, 2026L, 2026L, 2026L),
+                                  c(1L, 2L, 1L, 2L, NA))
+  expect_identical(as.character(p), c("2022-10-02", "2022-10-30",
+                                      "2026-10-04", "2026-10-25",
+                                      "2026-10-04"))
+  expect_s3_class(p, "Date")
+})
