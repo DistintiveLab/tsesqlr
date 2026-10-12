@@ -2,10 +2,11 @@
 
 Busca as métricas do detalhe (aptos, comparecimento, abstencoes,
 votos_nulos, votos_brancos) na tabela `detalhe` pré-carregada e devolve
-no formato longo do DW (`local`, `periodo`, `valor`, `uf`, `metrica`) —
-instantâneo depois de
+no formato longo do DW (`local`, `periodo`, `valor`, `uf`, `metrica`,
+`turno`) — instantâneo depois de
 [`tsesqlr_carregar()`](https://distintivelab.github.io/tsesqlr/reference/tsesqlr_carregar.md).
-Com `mapa` (saída de
+Cada turno é um ponto próprio: `periodo` cai no domingo da eleição
+daquele turno (2022: 02/10 e 30/10; 2026: 04/10). Com `mapa` (saída de
 [`tsebr::tse_mapa_municipios()`](https://rdrr.io/pkg/tsebr/man/tse_mapa_municipios.html)),
 `local` sai como código IBGE de 7 dígitos; sem mapa, como código TSE.
 
@@ -41,7 +42,7 @@ tsesqlr_detalhe_municipio(ano, uf, metrica, mapa = NULL, con = NULL)
 
 ## Value
 
-`data.frame` long: local, periodo, valor, uf, metrica.
+`data.frame` long: local, periodo, valor, uf, metrica, turno.
 
 ## See also
 
