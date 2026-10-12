@@ -132,6 +132,9 @@ seletores do pkgdown ignoram tópicos internos por padrão.
 - [`.padronizar()`](https://distintivelab.github.io/tsesqlr/reference/dot-padronizar.md)
   : Completa/ordena colunas do data.frame no esquema canonico
 
+- [`.periodo_eleicao()`](https://distintivelab.github.io/tsesqlr/reference/dot-periodo_eleicao.md)
+  : Data de cada turno da eleição geral (domingos de outubro)
+
 - [`.tipos_colunas`](https://distintivelab.github.io/tsesqlr/reference/dot-tipos_colunas.md)
   : Tipos canonicos das colunas (evita NA logico virar BOOLEAN no banco)
 

@@ -3,8 +3,10 @@
 Soma os votos da tabela `resultados` por município e devolve no formato
 longo do DW (`local`, `periodo`, `valor`, `uf`) — mesmo contrato de
 [`tsebr::tse_resultados_municipio()`](https://rdrr.io/pkg/tsebr/man/tse_resultados_municipio.html),
-sem baixar nada: o dado já está no banco pré-carregado. Com `mapa`
-(saída de
+sem baixar nada: o dado já está no banco pré-carregado. Cada turno é um
+`periodo` próprio: 1º turno no primeiro domingo de outubro e 2º no
+último (2022: 02/10 e 30/10), em vez do ano-fim que somava os dois
+turnos no mesmo ponto. Com `mapa` (saída de
 [`tsebr::tse_mapa_municipios()`](https://rdrr.io/pkg/tsebr/man/tse_mapa_municipios.html)
 ou `tse_municipios()`), `local` sai como código IBGE de 7 dígitos; sem
 mapa, como código TSE.
