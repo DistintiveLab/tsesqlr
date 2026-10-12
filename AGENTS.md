@@ -57,12 +57,20 @@ Run `devtools::test()` after every change. The suite is fast and offline.
 ## Database / credentials
 
 Connection is configured through `.Renviron` environment variables, NOT function
-defaults in normal use: **`user`, `password`, `host`, `dbname`** (lowercase;
-these same names are shared with `beep` / `prepare_db`). `tsesqlr_con()` has
+defaults in normal use: **`user`, `password`, `host`** (lowercase; these same
+names are shared with `beep` / `prepare_db`). `tsesqlr_con()` has
 hardcoded fallbacks (`beep`, a default password, `127.0.0.1`, `tsedb`) — these
 are dev conveniences, keep them in sync with the sibling projects.
 
-`dbname` defaults to `"tsedb"`. All functions accept an optional `con`; when
+**The tsesqlr database is `tsedb`, resolved by `tsedbname` (default
+`"tsedb"`).** Do NOT reuse the `dbname` variable from `.Renviron` files of
+sibling projects for tsesqlr loads: in `2026-eleicoes/.Renviron` it points to
+`painel_eleicoes`, which belongs to another system — a full reload was once
+written there by mistake. When passing an explicit `con`, double-check the
+`dbname` (or use the unix socket: `host = "/var/run/postgresql"`,
+`dbname = "tsedb"`).
+
+All functions accept an optional `con`; when
 `con = NULL` they open a connection and close it on exit via
 `on.exit(..., add = TRUE)`. Follow that ownership pattern in new functions.
 
