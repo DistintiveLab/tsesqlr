@@ -213,8 +213,8 @@ tsesqlr_init <- \(con = NULL) {
   locais_votacao = c("ano", "uf", "cod_municipio_tse", "municipio", "zona",
                      "secao", "local_votacao", "endereco", "bairro", "lat",
                      "lon", "eleitores_secao"),
-  detalhe = c("ano", "periodo", "uf", "cod_municipio_tse", "metrica",
-              "valor"))
+  detalhe = c("ano", "periodo", "uf", "cod_municipio_tse", "turno",
+              "metrica", "valor"))
 
 #' Tipos canonicos das colunas (evita NA logico virar BOOLEAN no banco)
 #' @keywords internal
@@ -485,8 +485,9 @@ tsesqlr_carregar <- \(tipo = c("candidatos", "resultados", "perfil", "locais",
     if (de %in% names(dados)) names(dados)[names(dados) == de] <- renomear[[de]]
   }
   dados <- .padronizar(dados, .padrao_colunas[[tabela]], ano)
-  if (tipo == "resultados") {
-    dados$periodo <- .periodo_eleicao(dados$ano, dados$turno)
+  if (tipo %in% c("resultados", "detalhe")) {
+    tem <- !is.na(dados$turno)
+    dados$periodo[tem] <- .periodo_eleicao(dados$ano[tem], dados$turno[tem])
   }
   .verificar_uf_dados(dados, uf)
   existe <- DBI::dbGetQuery(con, paste(
@@ -735,7 +736,9 @@ tsesqlr_disponivel <- \(tipo = c("resultados", "candidatos", "perfil",
 #' Busca as métricas do detalhe (aptos, comparecimento, abstencoes,
 #' votos_nulos, votos_brancos) na tabela `detalhe` pré-carregada e
 #' devolve no formato longo do DW (`local`, `periodo`, `valor`, `uf`,
-#' `metrica`) — instantâneo depois de [tsesqlr_carregar()]. Com `mapa`
+#' `metrica`, `turno`) — instantâneo depois de [tsesqlr_carregar()].
+#' Cada turno é um ponto próprio: `periodo` cai no domingo da
+#' eleição daquele turno (2022: 02/10 e 30/10; 2026: 04/10). Com `mapa`
 #' (saída de `tsebr::tse_mapa_municipios()`), `local` sai como código
 #' IBGE de 7 dígitos; sem mapa, como código TSE.
 #'
@@ -745,7 +748,7 @@ tsesqlr_disponivel <- \(tipo = c("resultados", "candidatos", "perfil",
 #' @param mapa `data.frame` com cod_municipio_tse e ibge (ou
 #'   geoloc_id, como em `tsebr::tse_mapa_municipios()`).
 #' @param con Conexao DBI; default abre via [tsesqlr_con()].
-#' @return `data.frame` long: local, periodo, valor, uf, metrica.
+#' @return `data.frame` long: local, periodo, valor, uf, metrica, turno.
 #' @examples
 #' \dontrun{
 #' tsesqlr_detalhe_municipio(2022, "DF", "abstencoes",
@@ -763,14 +766,14 @@ tsesqlr_detalhe_municipio <- \(ano, uf, metrica, mapa = NULL, con = NULL) {
   on.exit(if (.nossa) DBI::dbDisconnect(con), add = TRUE)
   uf <- toupper(uf[1])
   puxar <- \(a) {
-    sql <- paste("SELECT cod_municipio_tse, metrica, SUM(valor) AS valor",
+    sql <- paste("SELECT cod_municipio_tse, metrica, turno, SUM(valor) AS valor",
                  "FROM detalhe WHERE ano = $1 AND metrica = $2")
     params <- list(as.integer(a), metrica)
     if (!identical(uf, "ALL")) {
       sql <- paste(sql, "AND uf = $3")
       params[[3]] <- uf
     }
-    d <- DBI::dbGetQuery(con, paste(sql, "GROUP BY 1, 2"), params = params)
+    d <- DBI::dbGetQuery(con, paste(sql, "GROUP BY 1, 2, 3"), params = params)
     d$ano <- as.integer(a)
     d
   }
@@ -796,10 +799,14 @@ tsesqlr_detalhe_municipio <- \(ano, uf, metrica, mapa = NULL, con = NULL) {
       dplyr::mutate(local = ibge)
   }
   saida |>
-    dplyr::group_by(local, ano, metrica) |>
+    dplyr::group_by(local, ano, turno, metrica) |>
     dplyr::summarise(valor = sum(as.numeric(valor), na.rm = TRUE),
                      .groups = "drop") |>
-    dplyr::mutate(periodo = as.Date(paste0(ano, "-12-31")), uf = uf) |>
-    dplyr::select(local, periodo, valor, uf, metrica)
+    dplyr::mutate(
+      periodo = dplyr::if_else(is.na(turno),
+                               as.Date(paste0(ano, "-12-31")),
+                               .periodo_eleicao(ano, turno)),
+      uf = uf) |>
+    dplyr::select(local, periodo, valor, uf, metrica, turno)
 }
 

@@ -19,13 +19,15 @@ geoloc_id, como em \code{tsebr::tse_mapa_municipios()}).}
 \item{con}{Conexao DBI; default abre via \code{\link[=tsesqlr_con]{tsesqlr_con()}}.}
 }
 \value{
-\code{data.frame} long: local, periodo, valor, uf, metrica.
+\code{data.frame} long: local, periodo, valor, uf, metrica, turno.
 }
 \description{
 Busca as métricas do detalhe (aptos, comparecimento, abstencoes,
 votos_nulos, votos_brancos) na tabela \code{detalhe} pré-carregada e
 devolve no formato longo do DW (\code{local}, \code{periodo}, \code{valor}, \code{uf},
-\code{metrica}) — instantâneo depois de \code{\link[=tsesqlr_carregar]{tsesqlr_carregar()}}. Com \code{mapa}
+\code{metrica}, \code{turno}) — instantâneo depois de \code{\link[=tsesqlr_carregar]{tsesqlr_carregar()}}.
+Cada turno é um ponto próprio: \code{periodo} cai no domingo da
+eleição daquele turno (2022: 02/10 e 30/10; 2026: 04/10). Com \code{mapa}
 (saída de \code{tsebr::tse_mapa_municipios()}), \code{local} sai como código
 IBGE de 7 dígitos; sem mapa, como código TSE.
 }
